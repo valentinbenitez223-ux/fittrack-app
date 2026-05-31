@@ -1088,6 +1088,40 @@ function buildModal(key) {
     overlay.appendChild(box);
   }
 
+  // User Manual Modal
+  else if (key === 'manual') {
+    const pStyle = {style: {color: 'var(--t2)', fontSize: '14px', lineHeight: '1.6', marginBottom: '16px', whiteSpace: 'pre-wrap'}};
+    const hStyle = {className: 'syne', style: {fontSize: '16px', fontWeight: '800', color: 'var(--t1)', marginBottom: '8px', marginTop: '24px'}};
+    const box = div({className: 'modal-box', style: {maxHeight: '85vh', overflowY: 'auto'}},
+      div({className: 'syne', style: {fontSize: '22px', fontWeight: '800', marginBottom: '8px'}}, '🏋️‍♂️ Manual de Uso'),
+      div(pStyle, 'Bienvenido a FitTrack Pro. Esta aplicación no es un simple bloc de notas; es un CRM (Gestor de Relaciones) de Entrenamiento. Está diseñada con el principio de máxima eficiencia en el gimnasio: tocar la pantalla lo menos posible para obtener la mayor cantidad de datos estadísticos.'),
+      
+      div(hStyle, '📱 1. Instalación en el Celular (App Nativa)'),
+      div(pStyle, 'Para tener la mejor experiencia (sin barra del navegador y pantalla completa):\nEn Android (Chrome): Abre el enlace. Toca los 3 puntos arriba a la derecha y selecciona "Añadir a la pantalla de inicio".\nEn iPhone (Safari): Abre el enlace. Toca el ícono de compartir cuadrado con una flecha hacia arriba (abajo al medio) y selecciona "Añadir a inicio".\nA partir de ahora, ábrela siempre desde ese icono nuevo en tu pantalla.'),
+      
+      div(hStyle, '👥 2. Pantalla Principal: "Mis Alumnos"'),
+      div(pStyle, 'Esta es tu base de operaciones. Aquí tienes la visión global de tu cartera de clientes.\n- Tarjetas de Alumno: Muestran el nombre, hace cuántas sesiones no entrenan y su último peso registrado.\n- Segmentación Automática: La app agrupa a los alumnos de forma inteligente. Si alguien lleva más de 7 días sin entrenar, aparecerá destacado en naranja bajo "Atención Requerida". Es tu señal para enviarle un mensaje y retenerlo.\n- Buscador Inteligente: Escribe las primeras letras de su nombre para encontrarlo al instante.\n- Botón (+): Añade un nuevo alumno. Al crearlo, la app le asigna automáticamente la "Rutina Base".'),
+      
+      div(hStyle, '⚙️ 3. Perfil del Alumno: La "Rutina"'),
+      div(pStyle, 'Al tocar un alumno, entras a su perfil. La primera pestaña es la Rutina.\n- Marcador "HOY": La app resalta el día actual para que sepas qué le toca de un vistazo.\n- Editor de Rutina (El engranaje ⚙️): Si la rutina base no le sirve, toca el engranaje al lado del nombre del día. Podrás eliminar ejercicios, añadir nuevos o reordenarlos. ¡Este cambio solo afecta a este alumno en particular!\n- Iniciar Entrenamiento (Botón Play ▶️): Esto es lo que tocas cuando el alumno llega al gimnasio.'),
+      
+      div(hStyle, '⏱️ 4. El "Modo Entrenamiento" Activo'),
+      div(pStyle, 'Aquí registras lo que sucede en el "barro" de la sesión.\n- Ajuste Rápido (+/-): La app te muestra el peso que levantó la sesión anterior. Si hoy está más fuerte, súbele 2.5kg.\n- Temporizador de Descanso: Tras cada serie, toca el botón ámbar. Elije el tiempo y la app te avisará.\n- Check de Completado: Fundamental marcarlo al terminar.\n- Automatización de Carga Progresiva: Al tocar "Guardar Sesión", la app reescribe la rutina base de ese alumno con los pesos que levantó hoy.'),
+      
+      div(hStyle, '📈 5. Pestaña "Fuerza"'),
+      div(pStyle, 'El peso en la balanza no importa si no hay fuerza.\n- Selector de Ejercicio: Un menú desplegable que lista todos los ejercicios que el alumno ha hecho.\n- Gráfico Evolutivo: Traza la curva de fuerza a lo largo del tiempo.\n- Calculadora de 1RM Estimado: El número en grande es el 1RM (Repetición Máxima) estimado histórico del alumno. Arriba, te muestra cuánto mejoró respecto a la sesión anterior.'),
+      
+      div(hStyle, '⚖️ 6. Pestaña "Físico"'),
+      div(pStyle, 'Para el seguimiento del cambio estético.\n- Registro Avanzado (+): Permite ingresar Peso y Altura obligatoriamente (para calcular el IMC automático) y, opcionalmente, % de Grasa y Músculo.\n- Gráfico de Peso: Visualiza la pérdida o ganancia de peso.\n- Gráfico Dual: Si registraste porcentajes, la app dibujará una gráfica comparativa para ver cómo se cruzan las curvas de recomposición corporal a lo largo del tiempo.'),
+      
+      div(hStyle, '🛡️ 7. Seguridad y Backups'),
+      div(pStyle, 'ATENCIÓN: Esta app usa la filosofía Local-First para ser ultrarrápida. Los datos de los alumnos viven dentro de tu celular. Si borras el caché del navegador, pierdes los datos.\nEl Rescate: Desde la pantalla principal "Mis Alumnos", toca el botón de Ajustes.\nToca "Exportar Backup". Esto te descargará un archivo .json. Guárdalo en tu Google Drive una vez por semana.\nSi cambias de celular, entras a Ajustes -> "Importar Backup" y seleccionas el archivo. Recuperarás a todos tus alumnos.'),
+      
+      btn({className: 'btn-p', 'data-action': 'close-modal', style: {marginTop: '24px'}}, 'Cerrar Manual')
+    );
+    overlay.appendChild(box);
+  }
+
   // Backup Reminder Modal
   else if (key === 'backupPrompt') {
     const box = div({className: 'modal-box modal-c', style: {textAlign: 'center', padding: '32px 24px'}},
@@ -1405,6 +1439,7 @@ document.addEventListener('click', e => {
   }
   
   if (action === 'open-settings') { openModal('settings'); return; }
+  if (action === 'open-manual') { openModal('manual'); return; }
   if (action === 'set-theme') {
     DB.theme = t.dataset.val;
     persist();

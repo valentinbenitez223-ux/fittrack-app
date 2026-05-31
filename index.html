@@ -36,6 +36,9 @@
             <h1 class="syne" style="margin: 0; font-size: 28px; font-weight: 800;">Mis Alumnos</h1>
           </div>
           <div style="display: flex; gap: 10px;">
+            <button data-action="open-manual" style="width: 44px; height: 44px; border-radius: 50%; background: var(--s2); border: 1px solid var(--bd); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--t2); font-size: 18px; transition: all 0.2s;" aria-label="Manual de Uso">
+              <i class="fa-solid fa-circle-info"></i>
+            </button>
             <button data-action="open-settings" style="width: 44px; height: 44px; border-radius: 50%; background: var(--s2); border: 1px solid var(--bd); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--t2); font-size: 18px; transition: all 0.2s;" aria-label="Ajustes">
               <i class="fa-solid fa-gear"></i>
             </button>
@@ -67,6 +70,9 @@
             <i class="fa-solid fa-arrow-left"></i>
           </button>
           <div id="s-name" class="syne" style="flex: 1; font-size: 20px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+          <button data-action="open-manual" style="background: none; border: none; color: var(--t2); cursor: pointer; font-size: 18px; padding: 6px; transition: color 0.2s;" aria-label="Manual de Uso">
+            <i class="fa-solid fa-circle-info"></i>
+          </button>
           <button data-action="open-edit-student" style="background: none; border: none; color: var(--t2); cursor: pointer; font-size: 18px; padding: 6px; transition: color 0.2s;">
             <i class="fa-solid fa-ellipsis-vertical"></i>
           </button>
