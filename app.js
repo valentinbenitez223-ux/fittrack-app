@@ -481,8 +481,14 @@ function buildTabPlan(s) {
       style: {width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: 'var(--t3)', cursor: 'pointer', fontSize: '15px', zIndex: '2'}
     }, icon('fa-solid fa-gear'));
     
-    // Prevent start-workout when clicking edit
-    editBtn.onclick = e => { e.stopPropagation(); };
+    // Let the global listener handle it, don't stop propagation if we want to bubble to document.
+    // Actually, if we let it bubble, the card's start-workout might trigger if the closest check favors it.
+    // It's safer to just handle it directly here instead of bubbling.
+    editBtn.onclick = e => { 
+      e.stopPropagation(); 
+      UI.editDayIdx = idx;
+      openModal('editDay');
+    };
     row.appendChild(editBtn);
 
     if (!isRest) {
@@ -516,6 +522,13 @@ function buildTabPlan(s) {
     }
     wrap.appendChild(card);
   });
+  
+  wrap.appendChild(btn({
+    className: 'btn-i',
+    'data-action': 'add-day',
+    style: {width: '100%', padding: '14px', border: '1px dashed var(--bd)', borderRadius: 'var(--r)', color: 'var(--t3)', fontFamily: 'Syne, sans-serif', fontWeight: '700', fontSize: '14px'}
+  }, icon('fa-solid fa-plus'), ' Agregar Día a la Rutina'));
+  
   return wrap;
 }
 
@@ -1147,6 +1160,84 @@ function buildModal(key) {
     overlay.appendChild(box);
   }
 
+  // Edit Routine Day Modal
+  else if (key === 'editDay') {
+    const s = getStudent();
+    const day = s.routine[UI.editDayIdx];
+    
+    const exList = div({style: {display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', maxHeight: '40vh', overflowY: 'auto'}});
+    
+    if (day.isRest) {
+      exList.appendChild(div({style: {color: 'var(--t3)', fontSize: '13px', textAlign: 'center', padding: '20px 0'}}, 'Día de descanso. No hay ejercicios.'));
+    } else {
+      day.exercises.forEach((ex, i) => {
+        const exRow = div({style: {display: 'flex', alignItems: 'center', background: 'var(--s2)', padding: '10px 12px', borderRadius: 'var(--r)', border: '1px solid var(--bd)'}},
+          div({style: {flex: '1'}},
+            div({className: 'syne', style: {fontWeight: '700', fontSize: '14px', color: 'var(--t1)'}}, ex.name),
+            div({style: {fontSize: '11px', color: 'var(--t3)', marginTop: '2px'}}, `${ex.sets}x${ex.reps} @ ${ex.weight}kg`)
+          ),
+          div({style: {display: 'flex', gap: '4px'}},
+            btn({className: 'btn-i', 'data-action': 'move-ex-up', 'data-idx': String(i), disabled: i === 0, style: {padding: '6px', opacity: i === 0 ? '0.3' : '1'}}, icon('fa-solid fa-arrow-up')),
+            btn({className: 'btn-i', 'data-action': 'move-ex-down', 'data-idx': String(i), disabled: i === day.exercises.length - 1, style: {padding: '6px', opacity: i === day.exercises.length - 1 ? '0.3' : '1'}}, icon('fa-solid fa-arrow-down')),
+            btn({className: 'btn-i', 'data-action': 'remove-ex', 'data-idx': String(i), style: {padding: '6px', color: 'var(--red)'}}, icon('fa-solid fa-trash'))
+          )
+        );
+        exList.appendChild(exRow);
+      });
+    }
+
+    const box = div({className: 'modal-box'},
+      div({style: {display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}},
+        div({className: 'syne', style: {fontSize: '20px', fontWeight: '800'}}, `Editar Día`),
+        btn({className: 'btn-i', 'data-action': 'delete-day', style: {color: 'var(--red)', padding: '4px 8px'}}, icon('fa-solid fa-trash'), ' Borrar Día')
+      ),
+      
+      div({style: {display: 'flex', gap: '10px', marginBottom: '16px'}},
+        div({style: {flex: '1'}},
+          div({style: {fontSize: '11px', fontWeight: '700', color: 'var(--t3)', textTransform: 'uppercase', marginBottom: '6px'}}, 'Nombre del Día'),
+          el('input', {className: 'inp', value: day.day, 'data-action': 'edit-day-name', placeholder: 'Ej: Lunes o Día 1', style: {width: '100%'}})
+        ),
+        div({style: {flex: '1'}},
+          div({style: {fontSize: '11px', fontWeight: '700', color: 'var(--t3)', textTransform: 'uppercase', marginBottom: '6px'}}, 'Enfoque / Grupo'),
+          el('input', {className: 'inp', value: day.focus, 'data-action': 'edit-day-focus', style: {width: '100%'}})
+        )
+      ),
+      
+      div({style: {display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', padding: '12px', background: 'var(--s2)', borderRadius: 'var(--r)'}},
+        el('input', {type: 'checkbox', checked: day.isRest, 'data-action': 'toggle-day-rest', style: {width: '18px', height: '18px'}}),
+        div({className: 'syne', style: {fontWeight: '700', fontSize: '14px'}}, 'Marcar como día de descanso')
+      ),
+      
+      div({style: {display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px'}},
+        div({className: 'syne', style: {fontSize: '14px', fontWeight: '800'}}, 'Ejercicios'),
+        !day.isRest ? btn({className: 'btn-p', style: {padding: '6px 12px', fontSize: '12px'}, 'data-action': 'open-add-ex'}, icon('fa-solid fa-plus'), ' Agregar') : null
+      ),
+      exList,
+      
+      btn({className: 'btn-g', 'data-action': 'close-modal', style: {width: '100%'}}, 'Cerrar')
+    );
+    overlay.appendChild(box);
+  }
+
+  // Add Exercise Modal
+  else if (key === 'addExerciseToDay') {
+    const box = div({className: 'modal-box'},
+      div({className: 'syne', style: {fontSize: '20px', fontWeight: '800', marginBottom: '16px'}}, 'Nuevo Ejercicio'),
+      el('input', {id: 'new-ex-name', className: 'inp', placeholder: 'Nombre (ej: Press Militar)', style: {marginBottom: '12px', width: '100%'}}),
+      div({style: {display: 'flex', gap: '8px', marginBottom: '20px'}},
+        el('input', {id: 'new-ex-sets', className: 'inp', type: 'number', placeholder: 'Series', style: {flex: '1'}}),
+        el('input', {id: 'new-ex-reps', className: 'inp', type: 'number', placeholder: 'Reps', style: {flex: '1'}}),
+        el('input', {id: 'new-ex-weight', className: 'inp', type: 'number', placeholder: 'Peso', style: {flex: '1'}})
+      ),
+      div({style: {display: 'flex', gap: '10px'}},
+        btn({className: 'btn-g', style: {flex: '1'}, 'data-action': 'close-add-ex'}, 'Cancelar'),
+        btn({className: 'btn-p', style: {flex: '1'}, 'data-action': 'confirm-add-ex'}, 'Guardar')
+      )
+    );
+    overlay.appendChild(box);
+    setTimeout(() => document.getElementById('new-ex-name')?.focus(), 80);
+  }
+
   // Add Body Measurement Modal
   else if (key === 'addMeasurement') {
     const s = getStudent();
@@ -1395,6 +1486,21 @@ document.addEventListener('click', e => {
   if (action === 'finish-workout') { doFinishWorkout(); return; }
 
   // Editor de Rutinas Actions
+  if (action === 'add-day') {
+    const s = getStudent();
+    s.routine.push({day: `Día ${s.routine.length + 1}`, focus: 'Nuevo Enfoque', isRest: false, exercises: []});
+    persist();
+    fillTab(s);
+    return;
+  }
+  if (action === 'delete-day') {
+    const s = getStudent();
+    s.routine.splice(UI.editDayIdx, 1);
+    persist();
+    closeModalDOM();
+    fillTab(s);
+    return;
+  }
   if (action === 'open-edit-day') {
     UI.editDayIdx = +t.dataset.idx;
     openModal('editDay');
@@ -1567,6 +1673,12 @@ document.addEventListener('change', e => {
   if (e.target.dataset.action === 'edit-day-focus') {
     const s = getStudent();
     s.routine[UI.editDayIdx].focus = e.target.value;
+    persist();
+    fillTab(s);
+  }
+  if (e.target.dataset.action === 'edit-day-name') {
+    const s = getStudent();
+    s.routine[UI.editDayIdx].day = e.target.value;
     persist();
     fillTab(s);
   }
