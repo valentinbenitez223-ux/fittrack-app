@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#050508">
+  <title>FitTrack Pro</title>
+  
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Premium CSS styling -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app-container">
+    <div id="root" style="height: 100%; position: relative;"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       TEMPLATES  –  pure HTML structures populated by JS
+       ════════════════════════════════════════════════════ -->
+
+  <!-- List View: Mis Alumnos -->
+  <template id="t-list">
+    <div style="display: flex; flex-direction: column; height: 100%;">
+      <div class="hdr" style="padding: 24px 20px 0; position: sticky; top: 0; z-index: 10;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div>
+            <div class="syne" style="font-size: 11px; font-weight: 800; color: var(--em); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 4px;">FitTrack Pro</div>
+            <h1 class="syne" style="margin: 0; font-size: 28px; font-weight: 800;">Mis Alumnos</h1>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button data-action="open-settings" style="width: 44px; height: 44px; border-radius: 50%; background: var(--s2); border: 1px solid var(--bd); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--t2); font-size: 18px; transition: all 0.2s;" aria-label="Ajustes">
+              <i class="fa-solid fa-gear"></i>
+            </button>
+            <button data-action="open-add-student" style="width: 44px; height: 44px; border-radius: 50%; background: var(--em-dim); border: 1.5px solid var(--em-border); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--em); font-size: 20px; transition: all 0.2s;" aria-label="Agregar alumno">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+        </div>
+        <div style="position: relative; margin-bottom: 20px;">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--t3); font-size: 14px;"></i>
+          <input id="search-inp" class="inp" style="padding-left: 44px;" placeholder="Buscar alumno...">
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+          <div class="sm" style="flex: 1;"><div class="v" id="stat-total">0</div><div class="l">Total</div></div>
+          <div class="sm" style="flex: 1;"><div class="v" id="stat-today" style="color: var(--em)">0</div><div class="l">Hoy activos</div></div>
+          <div class="sm" style="flex: 1;"><div class="v" id="stat-hist">0</div><div class="l">Con historial</div></div>
+        </div>
+      </div>
+      <div id="student-list" style="flex: 1; padding: 16px 20px 32px; display: flex; flex-direction: column; gap: 12px;"></div>
+    </div>
+  </template>
+
+  <!-- Student Shell: Tabs Header & Viewport -->
+  <template id="t-student-shell">
+    <div style="display: flex; flex-direction: column; height: 100%;">
+      <div class="hdr" style="padding: 16px 20px 0; position: sticky; top: 0; z-index: 10;">
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+          <button data-action="go-list" style="width: 38px; height: 38px; border-radius: 50%; background: var(--s2); border: 1px solid var(--bd); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--t1); font-size: 14px; transition: all 0.2s;">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <div id="s-name" class="syne" style="flex: 1; font-size: 20px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+          <button data-action="open-edit-student" style="background: none; border: none; color: var(--t2); cursor: pointer; font-size: 18px; padding: 6px; transition: color 0.2s;">
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+          </button>
+        </div>
+        <div class="scx" style="margin-bottom: 0;">
+          <button class="tab-btn" data-tab="plan" aria-label="Ver Rutina"><i class="fa-solid fa-calendar-week"></i>Rutina</button>
+          <button class="tab-btn" data-tab="strength" aria-label="Ver Fuerza"><i class="fa-solid fa-arrow-trend-up"></i>Fuerza</button>
+          <button class="tab-btn" data-tab="body" aria-label="Ver Físico"><i class="fa-solid fa-weight-scale"></i>Físico</button>
+          <button class="tab-btn" data-tab="history" aria-label="Ver Historial"><i class="fa-solid fa-clock-rotate-left"></i>Historial</button>
+          <button class="tab-btn" data-tab="notes" aria-label="Ver Notas"><i class="fa-solid fa-note-sticky"></i>Notas</button>
+        </div>
+      </div>
+      <div id="tab-content" class="no-sb" style="flex: 1; padding: 20px; overflow-y: auto;"></div>
+    </div>
+  </template>
+
+  <!-- Active Workout Mode -->
+  <template id="t-workout-shell">
+    <div style="display: flex; flex-direction: column; height: 100%;">
+      <div class="hdr" style="padding: 16px 20px; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--bd);">
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px;">
+          <button data-action="cancel-workout" style="width: 36px; height: 36px; border-radius: 50%; background: var(--s2); border: 1px solid var(--bd); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--t2); font-size: 14px; transition: all 0.2s;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+          <div style="flex: 1;">
+            <div id="wd-day" class="syne" style="font-size: 11px; font-weight: 800; color: var(--t3); letter-spacing: .1em; text-transform: uppercase;"></div>
+            <div id="wd-focus" class="syne" style="font-size: 18px; font-weight: 800;"></div>
+          </div>
+          <div id="workout-timer" class="syne" style="font-weight: 800; font-size: 14px; color: var(--em); background: var(--em-dim); border: 1px solid var(--em-border); border-radius: var(--r3); padding: 6px 12px;">00:00</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="flex: 1; height: 6px; background: var(--s3); border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,0.02)">
+            <div id="wd-bar" style="height: 100%; width: 0%; background: var(--em); border-radius: 3px; transition: width .4s cubic-bezier(.22, 1, .36, 1); box-shadow: 0 0 10px var(--em);"></div>
+          </div>
+          <span id="wd-count" class="syne" style="font-size: 13px; font-weight: 700; color: var(--t2); min-width: 40px; text-align: right;">0/0</span>
+        </div>
+      </div>
+      <div id="exercise-list" class="no-sb" style="flex: 1; padding: 16px 20px 120px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto;"></div>
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 16px 20px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(180deg, transparent 0%, var(--bg) 20%); border-top: 1px solid var(--bd); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+        <button id="btn-finish" class="btn-p glow" data-action="finish-workout" disabled>
+          <i class="fa-solid fa-circle-check"></i> Completá al menos un ejercicio
+        </button>
+      </div>
+    </div>
+  </template>
+
+  <!-- Application logic -->
+  <script src="app.js"></script>
+</body>
+</html>
