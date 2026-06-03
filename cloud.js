@@ -127,13 +127,13 @@ window.SyncEngine = {
       if (s.syncStatus === 'pending') {
         const { error } = await supabaseClient.from('students').upsert({
           id: s.id,
-          workspace_id: this.workspaceId,
           name: s.name,
           is_deleted: !!s.isDeleted,
           created_by: this.user.id
           // updated_at is handled by server trigger
         });
         if (!error) s.syncStatus = 'synced';
+        else alert('Error guardando alumno: ' + error.message);
       }
 
       // 2. Routine
