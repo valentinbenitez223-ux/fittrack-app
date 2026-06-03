@@ -25,7 +25,21 @@ window.SyncEngine = {
   user: null,
   workspaceId: null,
   isSyncing: false,
-  lastSyncAt: localStorage.getItem('fitTrackLastSync') || null,
+  lastSyncAt: null,
+
+  syncCursorKey() {
+    return this.user ? `fitTrackLastSync:${this.user.id}` : 'fitTrackLastSync';
+  },
+
+  loadSyncCursor() {
+    this.lastSyncAt = this.user ? localStorage.getItem(this.syncCursorKey()) || null : null;
+  },
+
+  saveSyncCursor(value) {
+    this.lastSyncAt = value;
+    if (this.user) localStorage.setItem(this.syncCursorKey(), value);
+    localStorage.setItem('fitTrackLastSync', value);
+  },
 
   handleManualSync() {
     if (!supabaseClient) {
@@ -51,6 +65,7 @@ window.SyncEngine = {
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         this.user = session.user;
+        this.loadSyncCursor();
         this.fetchWorkspace();
       } else {
         this.showLoginModal();
@@ -62,10 +77,18 @@ window.SyncEngine = {
     supabaseClient.auth.onAuthStateChange((_event, session) => {
       this.user = session?.user || null;
       if (this.user) {
+        this.loadSyncCursor();
         this.fetchWorkspace();
+      } else {
+        this.lastSyncAt = null;
+        this.updateUI('offline');
       }
     });
 
+    window.addEventListener('online', () => {
+      if (this.user) this.syncAll();
+    });
+    window.addEventListener('offline', () => this.updateUI('offline'));
 
     // Auto-sync interval (cada 3 minutos)
     setInterval(() => {
@@ -78,12 +101,24 @@ window.SyncEngine = {
   async fetchWorkspace() {
     if (!this.user) return;
     this.workspaceId = this.user.id;
+    this.loadSyncCursor();
     await this.syncAll();
   },
 
   updateUI(state) {
     const icon = document.getElementById('sync-status-icon');
     if (!icon) return;
+    const btn = document.getElementById('sync-status-btn');
+    const pending = this.countPendingChanges();
+    const stateText = state === 'syncing'
+      ? 'Sincronizando'
+      : state === 'error'
+        ? 'Error de sincronización'
+        : state === 'offline'
+          ? 'Nube sin conexión'
+          : pending
+            ? `${pending} cambios pendientes`
+            : 'Sincronizado';
     
     icon.className = 'fa-solid fa-cloud';
     icon.style.color = 'var(--t3)';
@@ -100,10 +135,46 @@ window.SyncEngine = {
     } else if (state === 'offline') {
       icon.style.color = 'var(--t3)';
     }
+
+    if (btn) {
+      btn.title = stateText;
+      btn.setAttribute('aria-label', stateText);
+      let badge = document.getElementById('sync-pending-badge');
+      if (pending > 0) {
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.id = 'sync-pending-badge';
+          badge.style.position = 'absolute';
+          badge.style.right = '-3px';
+          badge.style.top = '-3px';
+          badge.style.minWidth = '18px';
+          badge.style.height = '18px';
+          badge.style.padding = '0 5px';
+          badge.style.borderRadius = '999px';
+          badge.style.background = 'var(--amber)';
+          badge.style.color = '#050508';
+          badge.style.fontSize = '10px';
+          badge.style.fontWeight = '900';
+          badge.style.display = 'flex';
+          badge.style.alignItems = 'center';
+          badge.style.justifyContent = 'center';
+          badge.style.border = '2px solid var(--bg)';
+          btn.style.position = 'relative';
+          btn.appendChild(badge);
+        }
+        badge.textContent = pending > 9 ? '9+' : String(pending);
+      } else if (badge) {
+        badge.remove();
+      }
+    }
   },
 
   async syncAll() {
-    if (this.isSyncing || !this.user || !navigator.onLine) return;
+    if (!navigator.onLine) {
+      this.updateUI('offline');
+      return;
+    }
+    if (this.isSyncing || !this.user) return;
     this.isSyncing = true;
     this.updateUI('syncing');
 
@@ -327,8 +398,7 @@ window.SyncEngine = {
     }
 
     if (maxServerTime > 0) {
-      this.lastSyncAt = new Date(maxServerTime).toISOString();
-      localStorage.setItem('fitTrackLastSync', this.lastSyncAt);
+      this.saveSyncCursor(new Date(maxServerTime).toISOString());
     }
     
     if (window.persist) window.persist({ skipSync: true });
@@ -336,21 +406,36 @@ window.SyncEngine = {
   },
 
   hasPendingChanges() {
-    const students = window.DB?.students;
-    if (!Array.isArray(students)) return false;
+    return this.countPendingChanges() > 0;
+  },
 
-    return students.some(s =>
-      s.syncStatus === 'pending' ||
-      s.routineSyncStatus === 'pending' ||
-      s.notesSyncStatus === 'pending' ||
-      (Array.isArray(s.measurements) && s.measurements.some(m => m.syncStatus === 'pending')) ||
-      (Array.isArray(s.history) && s.history.some(sess => sess.syncStatus === 'pending'))
-    );
+  countPendingChanges() {
+    if (typeof window.countPendingChanges === 'function') {
+      return window.countPendingChanges();
+    }
+    const students = window.DB?.students;
+    if (!Array.isArray(students)) return 0;
+
+    return students.reduce((total, s) => {
+      let count = total;
+      if (s.syncStatus === 'pending') count++;
+      if (s.routineSyncStatus === 'pending') count++;
+      if (s.notesSyncStatus === 'pending') count++;
+      count += (s.measurements || []).filter(m => m.syncStatus === 'pending').length;
+      count += (s.history || []).filter(sess => sess.syncStatus === 'pending').length;
+      return count;
+    }, 0);
   },
 
   triggerPush() {
     if (this.user && navigator.onLine && !this.isSyncing && this.hasPendingChanges()) {
-      this.pushLocalChanges();
+      this.updateUI('syncing');
+      this.pushLocalChanges()
+        .then(() => this.updateUI(this.hasPendingChanges() ? 'error' : 'synced'))
+        .catch(e => {
+          console.error('Error subiendo cambios locales:', e);
+          this.updateUI('error');
+        });
     }
   },
 

@@ -80,6 +80,26 @@ const bmi = (w, h) => (w / Math.pow(h / 100, 2)).toFixed(1);
 const bmiLbl = b => b < 18.5 ? ['Bajo peso', 'var(--blue)'] : b < 25 ? ['Normal', 'var(--em)'] : b < 30 ? ['Sobrepeso', 'var(--amber)'] : ['Obesidad', 'var(--red)'];
 const estDur = d => d.exercises.length * 4;
 const todayStr = () => new Date().toLocaleDateString('es-AR', {day: 'numeric', month: 'short'});
+const getVisibleStudents = () => DB.students.filter(s => !s.isDeleted);
+
+function countPendingChanges() {
+  return DB.students.reduce((total, s) => {
+    let count = total;
+    if (s.syncStatus === 'pending') count++;
+    if (s.routineSyncStatus === 'pending') count++;
+    if (s.notesSyncStatus === 'pending') count++;
+    count += (s.measurements || []).filter(m => m.syncStatus === 'pending').length;
+    count += (s.history || []).filter(sess => sess.syncStatus === 'pending').length;
+    return count;
+  }, 0);
+}
+
+function formatSyncTime(value) {
+  if (!value) return 'Nunca';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return 'Nunca';
+  return d.toLocaleString('es-AR', {day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'});
+}
 
 function debounce(func, wait) {
   let timeout;
@@ -372,6 +392,7 @@ const UI = {
 window.UI = UI;
 window.persist = persist;
 window.renderList = renderList;
+window.countPendingChanges = countPendingChanges;
 
 function getStudent() {
   return DB.students.find(s => s.id === UI.studentId);
@@ -438,16 +459,17 @@ function setStyle(id, prop, val) {
 function renderList() {
   stampTemplate('t-list');
 
+  const visibleStudents = getVisibleStudents();
   const today = todayStr();
-  const active = DB.students.filter(s => s.history.length && s.history[0].date === today).length;
-  setText('stat-total', DB.students.length);
+  const active = visibleStudents.filter(s => (s.history || []).length && s.history[0].date === today).length;
+  setText('stat-total', visibleStudents.length);
   setText('stat-today', active);
-  setText('stat-hist', DB.students.filter(s => s.history.length).length);
+  setText('stat-hist', visibleStudents.filter(s => (s.history || []).length).length);
 
   document.getElementById('search-inp').value = UI.search;
 
   const list = document.getElementById('student-list');
-  const filtered = DB.students.filter(s => !s.isDeleted && s.name.toLowerCase().includes(UI.search.toLowerCase()))
+  const filtered = visibleStudents.filter(s => s.name.toLowerCase().includes(UI.search.toLowerCase()))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   if (!filtered.length) {
@@ -1237,7 +1259,7 @@ function buildModal(key) {
     const tBtns = [
       {k: 'emerald', n: 'Esmeralda', c: '#00e5a0'},
       {k: 'blue', n: 'Océano', c: '#4d9fff'},
-      {k: 'amber', n: 'mbar', c: '#ffb340'},
+      {k: 'amber', n: 'Ámbar', c: '#ffb340'},
       {k: 'purple', n: 'Violeta', c: '#b366ff'},
       {k: 'rose', n: 'Rosa', c: '#ff4d6d'}
     ].map(t => div({
@@ -1253,6 +1275,22 @@ function buildModal(key) {
       div({className: 'syne', style: {fontSize: '11px', fontWeight: '700', color: thm === t.k ? 'var(--t1)' : 'var(--t3)'}}, t.n)
     ));
 
+    const syncEngine = window.SyncEngine;
+    const syncUser = syncEngine?.user || null;
+    const pendingChanges = countPendingChanges();
+    const visibleCount = getVisibleStudents().length;
+    const lastSyncText = formatSyncTime(syncEngine?.lastSyncAt || localStorage.getItem('fitTrackLastSync'));
+    const syncSummary = div({className: 'card sm', style: {padding: '14px 16px', marginBottom: '14px', background: 'var(--s1)'}},
+      div({style: {display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '8px'}},
+        div({className: 'syne', style: {fontSize: '13px', fontWeight: '800'}}, syncUser ? 'Nube conectada' : 'Nube sin sesión'),
+        span({style: {fontSize: '12px', color: pendingChanges ? 'var(--amber)' : (syncUser ? 'var(--em)' : 'var(--t3)'), fontWeight: '800'}}, pendingChanges ? `${pendingChanges} pendientes` : (syncUser ? 'Al día' : 'Offline'))
+      ),
+      div({style: {fontSize: '12px', color: 'var(--t2)', lineHeight: '1.6'}},
+        `${visibleCount} alumno${visibleCount !== 1 ? 's' : ''} visible${visibleCount !== 1 ? 's' : ''} · Última sync: ${lastSyncText}`
+      ),
+      syncUser?.email ? div({style: {fontSize: '12px', color: 'var(--t3)', marginTop: '4px', overflow: 'hidden', textOverflow: 'ellipsis'}}, syncUser.email) : null
+    );
+
     const box = div({className: 'modal-box'},
       div({className: 'syne', style: {fontSize: '22px', fontWeight: '800', marginBottom: '8px'}}, 'Ajustes'),
       div({style: {color: 'var(--t2)', fontSize: '14px', marginBottom: '24px'}}, 'Personalización y respaldo de datos.'),
@@ -1265,11 +1303,12 @@ function buildModal(key) {
       btn({className: 'btn-g', 'data-action': 'import-data-click', style: {marginBottom: '24px'}}, icon('fa-solid fa-upload'), 'Importar Backup (JSON)'),
       
       div({className: 'syne', style: {fontSize: '11px', fontWeight: '800', marginBottom: '12px', color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em'}}, 'Sincronización en la Nube'),
+      syncSummary,
       (window.SyncEngine && window.SyncEngine.user)
         ? btn({className: 'btn-p', 'data-action': 'sync-logout', style: {marginBottom: '24px', background: 'var(--red)', borderColor: 'var(--red)'}}, icon('fa-solid fa-arrow-right-from-bracket'), 'Cerrar Sesión')
         : btn({className: 'btn-g', 'data-action': 'manual-sync', style: {marginBottom: '24px', color: 'var(--blue)'}}, icon('fa-solid fa-cloud'), 'Iniciar Sesión en la Nube'),
       
-      btn({className: 'btn-sec', 'data-action': 'run-diagnostics', style: {marginBottom: '24px', width: '100%', borderColor: 'var(--primary)', color: 'var(--primary)'}}, icon('fa-solid fa-stethoscope'), ' Diagnstico de Red'),
+      btn({className: 'btn-sec', 'data-action': 'run-diagnostics', style: {marginBottom: '24px', width: '100%', borderColor: 'var(--primary)', color: 'var(--primary)'}}, icon('fa-solid fa-stethoscope'), ' Diagnóstico de Red'),
       btn({className: 'btn-p', 'data-action': 'close-modal'}, 'Cerrar Ajustes')
     );
     overlay.appendChild(box);
@@ -1762,6 +1801,51 @@ function stopRestTimer() {
 // 
 //  LAYER 8 — DELEGATED GLOBAL EVENTS ROUTER
 // 
+async function runCloudDiagnostics() {
+  if (!window.SyncEngine || !window.SyncEngine.user) {
+    alert('No estás conectado a la nube.');
+    return;
+  }
+  if (!window.supabaseClient) {
+    alert('No se encontró el cliente de Supabase. Recargá la app e intentá nuevamente.');
+    return;
+  }
+
+  try {
+    await window.SyncEngine.syncAll();
+
+    const { data, error } = await window.supabaseClient
+      .from('students')
+      .select('id,is_deleted,updated_at');
+
+    if (error) throw error;
+
+    const remoteRows = data || [];
+    const remoteVisible = remoteRows.filter(s => !s.is_deleted).length;
+    const remoteDeleted = remoteRows.length - remoteVisible;
+    const localVisible = getVisibleStudents().length;
+    const pending = countPendingChanges();
+    const lastSyncText = formatSyncTime(window.SyncEngine.lastSyncAt);
+
+    if (remoteVisible > 0 && localVisible === 0) {
+      await window.SyncEngine.pullRemoteChanges();
+      renderList();
+    }
+
+    alert(
+      `DIAGNÓSTICO DE NUBE\n` +
+      `Nube visibles: ${remoteVisible}\n` +
+      `Nube archivados: ${remoteDeleted}\n` +
+      `Este dispositivo: ${getVisibleStudents().length}\n` +
+      `Cambios pendientes: ${pending}\n` +
+      `Última sync: ${lastSyncText}`
+    );
+  } catch (err) {
+    console.error('Diagnóstico de nube falló:', err);
+    alert('DIAGNÓSTICO (Error): ' + (err?.message || JSON.stringify(err)));
+  }
+}
+
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-action]');
   if (!t) return;
@@ -1778,42 +1862,7 @@ document.addEventListener('click', e => {
     return;
   }
   if (action === 'run-diagnostics') {
-    if (!window.SyncEngine || !window.SyncEngine.user) {
-      alert("No estás conectado a la nube.");
-      return;
-    }
-    alert("Iniciando diagnóstico profundo... Por favor espera.");
-    const u = window.SyncEngine.user.id;
-    let pendingCount = DB.students.filter(s => s.syncStatus === 'pending').length;
-    
-    window.supabaseClient.from('students').select('*').then(async ({data, error}) => {
-      if (error) {
-        alert("DIAGNÓSTICO (Error lectura): " + error.message);
-      } else {
-        alert(`ESTADO:\nNube: ${data ? data.length : 0} alumnos\nCelular: ${DB.students.length} alumnos\nPendientes de subir: ${pendingCount}`);
-        
-        if (pendingCount > 0) {
-          const testS = DB.students.find(s => s.syncStatus === 'pending');
-          alert("Intentando forzar la subida del alumno pendiente...");
-          const { error: upErr } = await window.supabaseClient.from('students').upsert({
-            id: testS.id,
-            name: testS.name,
-            is_deleted: !!testS.isDeleted,
-            created_by: u
-          });
-          if (upErr) {
-            alert("DIAGNÓSTICO (Fallo subida): " + upErr.message + " | Detalles: " + JSON.stringify(upErr));
-          } else {
-            testS.syncStatus = 'synced';
-            persist();
-            alert("¡ÉXITO! El alumno subió correctamente. El problema era que el celular no estaba ejecutando la sincronización en segundo plano.");
-          }
-        } else if (data && data.length > 0 && DB.students.length === 0) {
-           alert("Hay datos en la nube pero no en el celular. Forzando descarga...");
-           window.SyncEngine.pullRemoteChanges();
-        }
-      }
-    });
+    runCloudDiagnostics();
     return;
   }
 
