@@ -346,6 +346,10 @@ window.SyncEngine = {
 };
 
 // Iniciar al cargar
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => window.SyncEngine.init(), 1000);
-});
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => { if (window.SyncEngine) window.SyncEngine.init(); }, 500);
+  });
+} else {
+  setTimeout(() => { if (window.SyncEngine) window.SyncEngine.init(); }, 500);
+}
