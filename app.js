@@ -1,9 +1,9 @@
-(function(){
+﻿(function(){
 'use strict';
 
-// ═══════════════════════════════════════════════════════════
-//  LAYER 1 — DATA STRUCTURES & BASE CONFIGURATION
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  LAYER 1 â€” DATA STRUCTURES & BASE CONFIGURATION
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const KEY = 'fittrack_v9';
 
 // Default routine based on gym-standard guidelines
@@ -16,14 +16,14 @@ const BASE_ROUTINE = [
     {id: 'l5', name: 'Remo c/ mancuerna', sets: 4, reps: 10, weight: 20},
     {id: 'l6', name: 'Pullover', sets: 4, reps: 10, weight: 15}
   ]},
-  {id: 1, day: 'Martes', focus: 'Bíceps + Tríceps + Abs', isRest: false, exercises: [
-    {id: 'm1', name: 'Curl de bíceps', sets: 3, reps: 10, weight: 15},
+  {id: 1, day: 'Martes', focus: 'BÃ­ceps + TrÃ­ceps + Abs', isRest: false, exercises: [
+    {id: 'm1', name: 'Curl de bÃ­ceps', sets: 3, reps: 10, weight: 15},
     {id: 'm2', name: 'Curl martillo', sets: 3, reps: 10, weight: 14},
-    {id: 'm3', name: 'Tríceps barra', sets: 3, reps: 8, weight: 20},
-    {id: 'm4', name: 'Tríceps mancuerna', sets: 3, reps: 10, weight: 10},
+    {id: 'm3', name: 'TrÃ­ceps barra', sets: 3, reps: 8, weight: 20},
+    {id: 'm4', name: 'TrÃ­ceps mancuerna', sets: 3, reps: 10, weight: 10},
     {id: 'm5', name: 'Abdominales', sets: 3, reps: 20, weight: 0}
   ]},
-  {id: 2, day: 'Miércoles', focus: 'Descanso', isRest: true, exercises: []},
+  {id: 2, day: 'MiÃ©rcoles', focus: 'Descanso', isRest: true, exercises: []},
   {id: 3, day: 'Jueves', focus: 'Piernas + Hombros', isRest: false, exercises: [
     {id: 'j1', name: 'Sentadilla c/ barra', sets: 4, reps: 10, weight: 40},
     {id: 'j2', name: 'Peso muerto', sets: 4, reps: 10, weight: 50},
@@ -39,7 +39,7 @@ const BASE_ROUTINE = [
     {id: 'v3', name: 'Remo c/ barra', sets: 4, reps: 10, weight: 50},
     {id: 'v4', name: 'Remo c/ mancuerna', sets: 4, reps: 10, weight: 20}
   ]},
-  {id: 5, day: 'Sábado', focus: 'Descanso', isRest: true, exercises: []},
+  {id: 5, day: 'SÃ¡bado', focus: 'Descanso', isRest: true, exercises: []},
   {id: 6, day: 'Domingo', focus: 'Descanso', isRest: true, exercises: []}
 ];
 
@@ -149,9 +149,9 @@ function freshStudent(name) {
   };
 }
 
-// ═══════════════════════════════════════════════════════════
-//  LAYER 2 — APPLICATION STATE & DATA PERSISTENCE
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  LAYER 2 â€” APPLICATION STATE & DATA PERSISTENCE
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function loadState() {
   try {
     const d = localStorage.getItem(KEY);
@@ -211,7 +211,7 @@ function loadState() {
     
     return p;
   } catch (err) {
-    console.error("Error crítico cargando localStorage:", err);
+    console.error("Error crÃ­tico cargando localStorage:", err);
     return null;
   }
 }
@@ -272,7 +272,7 @@ if (!DB.presets) DB.presets = [];
 if (DB.presets.length === 0 && !DB.presetsInitialized) {
   DB.presets = [
     { id: generateId(), name: 'Pecho y Espalda (Fuerza)', focus: 'Pecho + Espalda', exercises: clone(BASE_ROUTINE[0].exercises).map(e => ({...e, id: generateId()})) },
-    { id: generateId(), name: 'Brazos y Core', focus: 'Bíceps + Tríceps + Abs', exercises: clone(BASE_ROUTINE[1].exercises).map(e => ({...e, id: generateId()})) },
+    { id: generateId(), name: 'Brazos y Core', focus: 'BÃ­ceps + TrÃ­ceps + Abs', exercises: clone(BASE_ROUTINE[1].exercises).map(e => ({...e, id: generateId()})) },
     { id: generateId(), name: 'Piernas y Hombros', focus: 'Piernas + Hombros', exercises: clone(BASE_ROUTINE[3].exercises).map(e => ({...e, id: generateId()})) },
     { id: generateId(), name: 'Pecho y Espalda (Vol)', focus: 'Pecho + Espalda', exercises: clone(BASE_ROUTINE[4].exercises).map(e => ({...e, id: generateId()})) }
   ];
@@ -312,9 +312,9 @@ function getStudent() {
   return DB.students.find(s => s.id === UI.studentId);
 }
 
-// ═══════════════════════════════════════════════════════════
-//  LAYER 3 — DOM INJECTION & UTILITIES
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  LAYER 3 â€” DOM INJECTION & UTILITIES
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function el(tag, attrs = {}, ...kids) {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -367,9 +367,9 @@ function setStyle(id, prop, val) {
   if (n) n.style[prop] = val;
 }
 
-// ═══════════════════════════════════════════════════════════
-//  LAYER 4 — VIEW RENDER ENGINE
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  LAYER 4 â€” VIEW RENDER ENGINE
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function renderList() {
   stampTemplate('t-list');
 
@@ -387,7 +387,7 @@ function renderList() {
 
   if (!filtered.length) {
     list.appendChild(div({style: {textAlign: 'center', padding: '48px 16px', color: 'var(--t3)'}},
-      icon('fa-solid fa-users-slash'), document.createTextNode(UI.search ? ' Sin resultados' : ' Agregá tu primer alumno')
+      icon('fa-solid fa-users-slash'), document.createTextNode(UI.search ? ' Sin resultados' : ' AgregÃ¡ tu primer alumno')
     ));
     return;
   }
@@ -417,7 +417,7 @@ function renderList() {
   });
 
   const renderCard = (s, i) => {
-    const last = s.history.length ? s.history[0].date : '—';
+    const last = s.history.length ? s.history[0].date : 'â€”';
     const sessions = s.history.length;
     const lastW = s.measurements.length ? s.measurements[s.measurements.length - 1].weight : null;
 
@@ -436,7 +436,7 @@ function renderList() {
       ),
       div({style: {flex: '1', minWidth: '0'}},
         div({className: 'syne', style: {fontWeight: '700', fontSize: '16px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}, s.name),
-        div({style: {fontSize: '12px', color: 'var(--t3)', marginTop: '2px'}}, `Último: ${last} · ${sessions} sesión${sessions !== 1 ? 'es' : ''}`)
+        div({style: {fontSize: '12px', color: 'var(--t3)', marginTop: '2px'}}, `Ãšltimo: ${last} Â· ${sessions} sesiÃ³n${sessions !== 1 ? 'es' : ''}`)
       ),
       div({style: {display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px'}},
         lastW ? div({className: 'syne', style: {fontSize: '14px', fontWeight: '700'}}, lastW + 'kg') : null,
@@ -452,7 +452,7 @@ function renderList() {
   }
   
   if (groups.pending.length && !UI.search) {
-    list.appendChild(div({className: 'syne', style: {fontSize: '12px', fontWeight: '800', color: 'var(--amber)', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: '12px', marginBottom: '-4px'}}, 'Atención Requerida (>7 días)'));
+    list.appendChild(div({className: 'syne', style: {fontSize: '12px', fontWeight: '800', color: 'var(--amber)', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: '12px', marginBottom: '-4px'}}, 'AtenciÃ³n Requerida (>7 dÃ­as)'));
     groups.pending.forEach(renderCard);
   }
   
@@ -518,7 +518,7 @@ function fillTab(s) {
   content.appendChild(node);
 }
 
-// ── TAB: ROUTINE (PLAN) ──
+// â”€â”€ TAB: ROUTINE (PLAN) â”€â”€
 function buildTabPlan(s) {
   const today = todayI();
   const wrap = div({style: {display: 'flex', flexDirection: 'column', gap: '12px'}});
@@ -538,8 +538,8 @@ function buildTabPlan(s) {
   wrap.appendChild(stats);
   
   wrap.appendChild(div({style: {display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px'}},
-    div({className: 'syne', style: {fontSize: '12px', fontWeight: '800', color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.05em'}}, 'Diseño de la Rutina'),
-    div({style: {fontSize: '11px', color: 'var(--t3)'}}, 'Tocá el ícono ⚙️ para editar')
+    div({className: 'syne', style: {fontSize: '12px', fontWeight: '800', color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.05em'}}, 'DiseÃ±o de la Rutina'),
+    div({style: {fontSize: '11px', color: 'var(--t3)'}}, 'TocÃ¡ el Ã­cono âš™ï¸ para editar')
   ));
 
   s.routine.forEach((day, idx) => {
@@ -575,7 +575,7 @@ function buildTabPlan(s) {
 
     if (!isRest) {
       info.appendChild(div({style: {fontSize: '12px', color: 'var(--t3)', marginTop: '3px'}},
-        `${day.exercises.length} ejercicios · ~${estDur(day)} min`));
+        `${day.exercises.length} ejercicios Â· ~${estDur(day)} min`));
     }
     row.appendChild(info);
 
@@ -638,16 +638,16 @@ function buildTabPlan(s) {
     className: 'btn-i',
     'data-action': 'add-day',
     style: {width: '100%', padding: '14px', border: '1px dashed var(--bd)', borderRadius: 'var(--r)', color: 'var(--t3)', fontFamily: 'Syne, sans-serif', fontWeight: '700', fontSize: '14px'}
-  }, icon('fa-solid fa-plus'), ' Agregar Día a la Rutina'));
+  }, icon('fa-solid fa-plus'), ' Agregar DÃ­a a la Rutina'));
   
   return wrap;
 }
 
-// ── TAB: STRENGTH PROGRESION ──
+// â”€â”€ TAB: STRENGTH PROGRESION â”€â”€
 function buildTabStrength(s) {
   const names = allExerciseNames(s);
   if (!names.length) {
-    return buildEmpty('fa-dumbbell', 'Sin datos de fuerza aún', 'Completá tu primer entrenamiento registrado para activar este gráfico.');
+    return buildEmpty('fa-dumbbell', 'Sin datos de fuerza aÃºn', 'CompletÃ¡ tu primer entrenamiento registrado para activar este grÃ¡fico.');
   }
 
   const sel = names.includes(UI.selExercise) ? UI.selExercise : names[0];
@@ -687,9 +687,9 @@ function buildTabStrength(s) {
   // Statistics Display
   const stats = div({style: {display: 'flex', gap: '8px'}});
   [
-    [prRm + 'kg', 'Récord 1RM', 'var(--em)'],
-    [pr + 'kg', 'Récord Absoluto', null],
-    [diff !== null ? (diffPos ? '+' : '') + diff + '%' : '—', diff !== null ? 'Progreso 1RM' : null, diffPos ? 'var(--em)' : 'var(--red)']
+    [prRm + 'kg', 'RÃ©cord 1RM', 'var(--em)'],
+    [pr + 'kg', 'RÃ©cord Absoluto', null],
+    [diff !== null ? (diffPos ? '+' : '') + diff + '%' : 'â€”', diff !== null ? 'Progreso 1RM' : null, diffPos ? 'var(--em)' : 'var(--red)']
   ].forEach(([v, l, c]) => {
     stats.appendChild(div({className: 'sm', style: {flex: '1'}},
       div({className: 'v', style: c ? {color: c, fontSize: '16px'} : {fontSize: '16px'}}, v),
@@ -704,7 +704,7 @@ function buildTabStrength(s) {
   const rmWidget = div({className: 'card', style: {padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', background: 'linear-gradient(145deg, var(--s2) 0%, rgba(20,20,36,0.5) 100%)', borderColor: 'var(--em-border)'}});
   rmWidget.appendChild(div({style: {display: 'flex', justifyContent: 'space-between', alignItems: 'center'}},
     div({className: 'syne', style: {fontSize: '13px', fontWeight: '800', color: 'var(--t1)'}}, 'Calculadora 1RM Estimado'),
-    div({className: 'syne', id: 'rm-result', style: {fontSize: '20px', fontWeight: '800', color: 'var(--em)'}}, estimated1RM ? estimated1RM + 'kg' : '—')
+    div({className: 'syne', id: 'rm-result', style: {fontSize: '20px', fontWeight: '800', color: 'var(--em)'}}, estimated1RM ? estimated1RM + 'kg' : 'â€”')
   ));
   const rmGrid = div({style: {display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}});
   rmGrid.appendChild(el('input', {id: 'rm-w', className: 'inp', type: 'number', placeholder: 'Peso', value: prog.length ? prog[prog.length - 1].weight : '', 'data-action': 'calc-rm', style: {fontSize: '14px', padding: '10px'}}));
@@ -716,7 +716,7 @@ function buildTabStrength(s) {
   if (target) {
     wrap.appendChild(div({className: 'card', style: {display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px'}},
       div({style: {fontSize: '13px', color: 'var(--t2)'}}, 'Objetivo en Rutina'),
-      div({className: 'syne', style: {fontWeight: '700', color: 'var(--t1)'}}, `${target.sets}×${target.reps} @ ${target.weight}kg`)
+      div({className: 'syne', style: {fontWeight: '700', color: 'var(--t1)'}}, `${target.sets}Ã—${target.reps} @ ${target.weight}kg`)
     ));
   }
 
@@ -727,7 +727,7 @@ function buildTabStrength(s) {
     wrap.appendChild(chartDiv);
   } else {
     wrap.appendChild(div({className: 'card', style: {textAlign: 'center', padding: '28px 16px', color: 'var(--t3)', fontSize: '13px'}},
-      'Necesitás completar al menos 2 sesiones de este ejercicio para generar el gráfico de evolución de 1RM.'
+      'NecesitÃ¡s completar al menos 2 sesiones de este ejercicio para generar el grÃ¡fico de evoluciÃ³n de 1RM.'
     ));
   }
 
@@ -739,7 +739,7 @@ function buildTabStrength(s) {
       rows.appendChild(div({className: 'exrow', style: {display: 'flex', justifyContent: 'space-between'}},
         span({style: {color: 'var(--t2)', fontSize: '14px'}}, d.date),
         div({style: {textAlign: 'right'}},
-          span({className: 'syne', style: {fontWeight: '700', display: 'block'}}, `${d.weight}kg × ${d.reps}`),
+          span({className: 'syne', style: {fontWeight: '700', display: 'block'}}, `${d.weight}kg Ã— ${d.reps}`),
           span({style: {fontSize: '10px', color: 'var(--t3)'}}, `Volumen: ${d.vol}kg`)
         )
       ));
@@ -776,7 +776,7 @@ function buildLineChartSVG(data, key, unit, colorVar) {
   
   return `
     <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px">
-      <div class="syne" style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em">Progresión de Carga</div>
+      <div class="syne" style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em">ProgresiÃ³n de Carga</div>
       <div class="syne" style="font-size:22px;font-weight:800;color:${color}">${vals[vals.length - 1]}${unit}</div>
     </div>
     <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px;overflow:visible">
@@ -796,7 +796,7 @@ function buildLineChartSVG(data, key, unit, colorVar) {
     </div>`;
 }
 
-// ── TAB: BODY COMPOSITION ──
+// â”€â”€ TAB: BODY COMPOSITION â”€â”€
 function buildTabBody(s) {
   const wrap = div({style: {display: 'flex', flexDirection: 'column', gap: '14px'}});
 
@@ -805,13 +805,13 @@ function buildTabBody(s) {
     style: {cursor: 'pointer', border: '1px solid var(--em-border)', padding: '8px 16px', fontSize: '12px', alignSelf: 'flex-end'},
     'data-action': 'open-add-measurement'
   },
-    icon('fa-solid fa-plus'), ' Registrar Medición'
+    icon('fa-solid fa-plus'), ' Registrar MediciÃ³n'
   );
   wrap.appendChild(addBtn);
 
   const m = s.measurements;
   if (!m.length) {
-    wrap.appendChild(buildEmpty('fa-weight-scale', 'Sin mediciones corporales', 'Agregá los datos corporales del alumno (peso, altura, % de grasa) con el botón superior.'));
+    wrap.appendChild(buildEmpty('fa-weight-scale', 'Sin mediciones corporales', 'AgregÃ¡ los datos corporales del alumno (peso, altura, % de grasa) con el botÃ³n superior.'));
     return wrap;
   }
 
@@ -826,7 +826,7 @@ function buildTabBody(s) {
   const stats = div({style: {display: 'flex', gap: '8px'}});
   stats.appendChild(buildStatCard(last.weight + 'kg', 'Peso', null, wDiff ? {val: wDiff, pos: parseFloat(wDiff) <= 0} : null));
   stats.appendChild(buildStatCard(String(b), 'IMC', bColor, null, bLabel, bColor));
-  stats.appendChild(buildStatCard(last.fat ? last.fat + '%' : '—', 'Grasa', null, fDiff ? {val: fDiff, pos: parseFloat(fDiff) <= 0} : null));
+  stats.appendChild(buildStatCard(last.fat ? last.fat + '%' : 'â€”', 'Grasa', null, fDiff ? {val: fDiff, pos: parseFloat(fDiff) <= 0} : null));
   wrap.appendChild(stats);
 
   // SVG weight progress line chart
@@ -854,7 +854,7 @@ function buildTabBody(s) {
       div({style: {textAlign: 'right'}},
         div({className: 'syne', style: {fontSize: '16px', fontWeight: '800', color: 'var(--t1)'}}, item.weight + 'kg'),
         (item.fat || item.muscle) ? div({style: {fontSize: '11px', color: 'var(--t3)', marginTop: '3px', fontWeight: '600'}} ,
-          (item.fat ? 'Grasa: ' + item.fat + '% ' : '') + (item.muscle ? '· Músc: ' + item.muscle + '%' : '')
+          (item.fat ? 'Grasa: ' + item.fat + '% ' : '') + (item.muscle ? 'Â· MÃºsc: ' + item.muscle + '%' : '')
         ) : null
       )
     ));
@@ -887,7 +887,7 @@ function buildDualChartSVG(data) {
     return `<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>${dots}`;
   }
   return `
-    <div class="syne" style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Evolución Corporal (% Comp)</div>
+    <div class="syne" style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">EvoluciÃ³n Corporal (% Comp)</div>
     <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px;overflow:visible">
       ${line(data.map(d => d.fat), 'var(--red)')}
       ${line(data.map(d => d.muscle), 'var(--blue)')}
@@ -902,7 +902,7 @@ function buildDualChartSVG(data) {
     </div>`;
 }
 
-// ── TAB: WORKOUT HISTORY ──
+// â”€â”€ TAB: WORKOUT HISTORY â”€â”€
 function buildCalendarWidget(s) {
   const getLocalYMD = (isoStr) => {
     if (!isoStr) return '';
@@ -977,7 +977,7 @@ function buildTabHistory(s) {
     sess.exercises.forEach(ex => {
       rows.appendChild(div({className: 'exrow', style: {padding: '8px 0'}},
         span({style: {color: 'var(--t2)', fontSize: '13px'}}, ex.name),
-        span({className: 'syne', style: {fontWeight: '700', fontSize: '13px'}}, `${ex.actualWeight}kg × ${ex.actualReps}`)
+        span({className: 'syne', style: {fontWeight: '700', fontSize: '13px'}}, `${ex.actualWeight}kg Ã— ${ex.actualReps}`)
       ));
     });
     card.appendChild(rows);
@@ -986,13 +986,13 @@ function buildTabHistory(s) {
   return wrap;
 }
 
-// ── TAB: COACH NOTES ──
+// â”€â”€ TAB: COACH NOTES â”€â”€
 function buildTabNotes(s) {
   const wrap = div({style: {display: 'flex', flexDirection: 'column', gap: '12px'}});
-  wrap.appendChild(div({style: {fontSize: '13px', color: 'var(--t2)'}}, `Notas y restricciones físicas del alumno.`));
+  wrap.appendChild(div({style: {fontSize: '13px', color: 'var(--t2)'}}, `Notas y restricciones fÃ­sicas del alumno.`));
   
   const ta = el('textarea', {className: 'inp', style: {height: '240px', resize: 'none', lineHeight: '1.6'}});
-  ta.placeholder = 'Restricciones, lesiones, objetivos específicos, etc...';
+  ta.placeholder = 'Restricciones, lesiones, objetivos especÃ­ficos, etc...';
   ta.value = s.notes || '';
   ta.dataset.action = 'notes-input';
   wrap.appendChild(ta);
@@ -1008,9 +1008,9 @@ function buildTabNotes(s) {
   return wrap;
 }
 
-// ═══════════════════════════════════════════════════════════
-//  LAYER 5 — ACTIVE WORKOUT VIEW
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  LAYER 5 â€” ACTIVE WORKOUT VIEW
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function renderWorkout() {
   stampTemplate('t-workout-shell');
   setText('wd-day', UI.wDay.day);
@@ -1057,7 +1057,7 @@ function buildExCard(ex, idx) {
   ));
   
   info.appendChild(div({style: {fontSize: '12px', color: 'var(--t3)', marginTop: '2px'}},
-    `${ex.sets} series · ${ex.reps} reps · ${ex.weight}kg objetivo`
+    `${ex.sets} series Â· ${ex.reps} reps Â· ${ex.weight}kg objetivo`
   ));
   top.appendChild(info);
 
@@ -1083,7 +1083,7 @@ function buildExCard(ex, idx) {
     const wCol = div({});
     wCol.appendChild(div({className: 'syne', style: {fontSize: '10px', fontWeight: '700', color: 'var(--t3)', letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: '5px'}}, 'Peso (kg)'));
     const wRow = div({style: {display: 'flex', alignItems: 'center', gap: '6px'}});
-    wRow.appendChild(btn({'data-action': 'dec-w', 'data-idx': String(idx), style: {width: '32px', height: '36px', background: 'var(--s3)', border: '1px solid var(--bd)', borderRadius: 'var(--r3)', color: 'var(--t2)', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}, '−'));
+    wRow.appendChild(btn({'data-action': 'dec-w', 'data-idx': String(idx), style: {width: '32px', height: '36px', background: 'var(--s3)', border: '1px solid var(--bd)', borderRadius: 'var(--r3)', color: 'var(--t2)', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}, 'âˆ’'));
     
     const wInp = el('input', {type: 'number', className: 'ni', 'data-action': 'inp-w', 'data-idx': String(idx), value: String(ex.actualWeight), step: '2.5', min: '0'});
     wRow.appendChild(wInp);
@@ -1096,7 +1096,7 @@ function buildExCard(ex, idx) {
     const rCol = div({});
     rCol.appendChild(div({className: 'syne', style: {fontSize: '10px', fontWeight: '700', color: 'var(--t3)', letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: '5px'}}, 'Reps'));
     const rRow = div({style: {display: 'flex', alignItems: 'center', gap: '6px'}});
-    rRow.appendChild(btn({'data-action': 'dec-r', 'data-idx': String(idx), style: {width: '32px', height: '36px', background: 'var(--s3)', border: '1px solid var(--bd)', borderRadius: 'var(--r3)', color: 'var(--t2)', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}, '−'));
+    rRow.appendChild(btn({'data-action': 'dec-r', 'data-idx': String(idx), style: {width: '32px', height: '36px', background: 'var(--s3)', border: '1px solid var(--bd)', borderRadius: 'var(--r3)', color: 'var(--t2)', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}, 'âˆ’'));
     
     const rInp = el('input', {type: 'number', className: 'ni', 'data-action': 'inp-r', 'data-idx': String(idx), value: String(ex.actualReps), step: '1', min: '0'});
     rRow.appendChild(rInp);
@@ -1141,15 +1141,15 @@ function updateWorkoutProgress() {
   const finBtn = document.getElementById('btn-finish');
   if (finBtn) {
     finBtn.disabled = done === 0;
-    finBtn.textContent = done === 0 ? 'Completá al menos un ejercicio' : `Guardar sesión · ${done} ejerc. listos`;
+    finBtn.textContent = done === 0 ? 'CompletÃ¡ al menos un ejercicio' : `Guardar sesiÃ³n Â· ${done} ejerc. listos`;
     const ic = icon('fa-solid fa-circle-check');
     finBtn.prepend(ic, ' ');
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-//  LAYER 6 — MODAL GENERATORS
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  LAYER 6 â€” MODAL GENERATORS
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function openModal(key, data = {}) {
   UI.modal = key;
   UI.modalData = data;
@@ -1171,8 +1171,8 @@ function buildModal(key) {
     const thm = DB.theme || 'emerald';
     const tBtns = [
       {k: 'emerald', n: 'Esmeralda', c: '#00e5a0'},
-      {k: 'blue', n: 'Océano', c: '#4d9fff'},
-      {k: 'amber', n: 'Ámbar', c: '#ffb340'},
+      {k: 'blue', n: 'OcÃ©ano', c: '#4d9fff'},
+      {k: 'amber', n: 'Ãmbar', c: '#ffb340'},
       {k: 'purple', n: 'Violeta', c: '#b366ff'},
       {k: 'rose', n: 'Rosa', c: '#ff4d6d'}
     ].map(t => div({
@@ -1190,20 +1190,21 @@ function buildModal(key) {
 
     const box = div({className: 'modal-box'},
       div({className: 'syne', style: {fontSize: '22px', fontWeight: '800', marginBottom: '8px'}}, 'Ajustes'),
-      div({style: {color: 'var(--t2)', fontSize: '14px', marginBottom: '24px'}}, 'Personalización y respaldo de datos.'),
+      div({style: {color: 'var(--t2)', fontSize: '14px', marginBottom: '24px'}}, 'PersonalizaciÃ³n y respaldo de datos.'),
       
       div({className: 'syne', style: {fontSize: '11px', fontWeight: '800', marginBottom: '12px', color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em'}}, 'Color de Acento'),
       div({style: {display: 'flex', gap: '6px', marginBottom: '28px', flexWrap: 'wrap'}}, ...tBtns),
       
-      div({className: 'syne', style: {fontSize: '11px', fontWeight: '800', marginBottom: '12px', color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em'}}, 'Datos de la Aplicación'),
+      div({className: 'syne', style: {fontSize: '11px', fontWeight: '800', marginBottom: '12px', color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em'}}, 'Datos de la AplicaciÃ³n'),
       btn({className: 'btn-g', 'data-action': 'export-data', style: {marginBottom: '10px'}}, icon('fa-solid fa-download'), 'Exportar Backup (JSON)'),
       btn({className: 'btn-g', 'data-action': 'import-data-click', style: {marginBottom: '24px'}}, icon('fa-solid fa-upload'), 'Importar Backup (JSON)'),
       
-      div({className: 'syne', style: {fontSize: '11px', fontWeight: '800', marginBottom: '12px', color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em'}}, 'Sincronización en la Nube'),
+      div({className: 'syne', style: {fontSize: '11px', fontWeight: '800', marginBottom: '12px', color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em'}}, 'SincronizaciÃ³n en la Nube'),
       (window.SyncEngine && window.SyncEngine.user)
-        ? btn({className: 'btn-p', 'data-action': 'sync-logout', style: {marginBottom: '24px', background: 'var(--red)', borderColor: 'var(--red)'}}, icon('fa-solid fa-arrow-right-from-bracket'), 'Cerrar Sesión')
-        : btn({className: 'btn-g', 'data-action': 'manual-sync', style: {marginBottom: '24px', color: 'var(--blue)'}}, icon('fa-solid fa-cloud'), 'Iniciar Sesión en la Nube'),
+        ? btn({className: 'btn-p', 'data-action': 'sync-logout', style: {marginBottom: '24px', background: 'var(--red)', borderColor: 'var(--red)'}}, icon('fa-solid fa-arrow-right-from-bracket'), 'Cerrar SesiÃ³n')
+        : btn({className: 'btn-g', 'data-action': 'manual-sync', style: {marginBottom: '24px', color: 'var(--blue)'}}, icon('fa-solid fa-cloud'), 'Iniciar SesiÃ³n en la Nube'),
       
+      btn({className: 'btn-sec', 'data-action': 'run-diagnostics', style: {marginBottom: '24px', width: '100%', borderColor: 'var(--primary)', color: 'var(--primary)'}}, icon('fa-solid fa-stethoscope'), ' Diagnóstico de Red'),
       btn({className: 'btn-p', 'data-action': 'close-modal'}, 'Cerrar Ajustes')
     );
     overlay.appendChild(box);
@@ -1214,29 +1215,29 @@ function buildModal(key) {
     const pStyle = {style: {color: 'var(--t2)', fontSize: '14px', lineHeight: '1.6', marginBottom: '16px', whiteSpace: 'pre-wrap'}};
     const hStyle = {className: 'syne', style: {fontSize: '16px', fontWeight: '800', color: 'var(--t1)', marginBottom: '8px', marginTop: '24px'}};
     const box = div({className: 'modal-box', style: {maxHeight: '85vh', overflowY: 'auto'}},
-      div({className: 'syne', style: {fontSize: '22px', fontWeight: '800', marginBottom: '8px'}}, '🏋️‍♂️ Manual de Uso'),
-      div(pStyle, 'Bienvenido a FitTrack Pro. Esta aplicación no es un simple bloc de notas; es un CRM (Gestor de Relaciones) de Entrenamiento. Está diseñada con el principio de máxima eficiencia en el gimnasio: tocar la pantalla lo menos posible para obtener la mayor cantidad de datos estadísticos.'),
+      div({className: 'syne', style: {fontSize: '22px', fontWeight: '800', marginBottom: '8px'}}, 'ðŸ‹ï¸â€â™‚ï¸ Manual de Uso'),
+      div(pStyle, 'Bienvenido a FitTrack Pro. Esta aplicaciÃ³n no es un simple bloc de notas; es un CRM (Gestor de Relaciones) de Entrenamiento. EstÃ¡ diseÃ±ada con el principio de mÃ¡xima eficiencia en el gimnasio: tocar la pantalla lo menos posible para obtener la mayor cantidad de datos estadÃ­sticos.'),
       
-      div(hStyle, '📱 1. Instalación en el Celular (App Nativa)'),
-      div(pStyle, 'Para tener la mejor experiencia (sin barra del navegador y pantalla completa):\nEn Android (Chrome): Abre el enlace. Toca los 3 puntos arriba a la derecha y selecciona "Añadir a la pantalla de inicio".\nEn iPhone (Safari): Abre el enlace. Toca el ícono de compartir cuadrado con una flecha hacia arriba (abajo al medio) y selecciona "Añadir a inicio".\nA partir de ahora, ábrela siempre desde ese icono nuevo en tu pantalla.'),
+      div(hStyle, 'ðŸ“± 1. InstalaciÃ³n en el Celular (App Nativa)'),
+      div(pStyle, 'Para tener la mejor experiencia (sin barra del navegador y pantalla completa):\nEn Android (Chrome): Abre el enlace. Toca los 3 puntos arriba a la derecha y selecciona "AÃ±adir a la pantalla de inicio".\nEn iPhone (Safari): Abre el enlace. Toca el Ã­cono de compartir cuadrado con una flecha hacia arriba (abajo al medio) y selecciona "AÃ±adir a inicio".\nA partir de ahora, Ã¡brela siempre desde ese icono nuevo en tu pantalla.'),
       
-      div(hStyle, '👥 2. Pantalla Principal: "Mis Alumnos"'),
-      div(pStyle, 'Esta es tu base de operaciones. Aquí tienes la visión global de tu cartera de clientes.\n- Tarjetas de Alumno: Muestran el nombre, hace cuántas sesiones no entrenan y su último peso registrado.\n- Segmentación Automática: La app agrupa a los alumnos de forma inteligente. Si alguien lleva más de 7 días sin entrenar, aparecerá destacado en naranja bajo "Atención Requerida". Es tu señal para enviarle un mensaje y retenerlo.\n- Buscador Inteligente: Escribe las primeras letras de su nombre para encontrarlo al instante.\n- Botón (+): Añade un nuevo alumno. Al crearlo, la app le asigna automáticamente la "Rutina Base".'),
+      div(hStyle, 'ðŸ‘¥ 2. Pantalla Principal: "Mis Alumnos"'),
+      div(pStyle, 'Esta es tu base de operaciones. AquÃ­ tienes la visiÃ³n global de tu cartera de clientes.\n- Tarjetas de Alumno: Muestran el nombre, hace cuÃ¡ntas sesiones no entrenan y su Ãºltimo peso registrado.\n- SegmentaciÃ³n AutomÃ¡tica: La app agrupa a los alumnos de forma inteligente. Si alguien lleva mÃ¡s de 7 dÃ­as sin entrenar, aparecerÃ¡ destacado en naranja bajo "AtenciÃ³n Requerida". Es tu seÃ±al para enviarle un mensaje y retenerlo.\n- Buscador Inteligente: Escribe las primeras letras de su nombre para encontrarlo al instante.\n- BotÃ³n (+): AÃ±ade un nuevo alumno. Al crearlo, la app le asigna automÃ¡ticamente la "Rutina Base".'),
       
-      div(hStyle, '⚙️ 3. Perfil del Alumno: La "Rutina"'),
-      div(pStyle, 'Al tocar un alumno, entras a su perfil. La primera pestaña es la Rutina.\n- Marcador "HOY": La app resalta el día actual para que sepas qué le toca de un vistazo.\n- Editor de Rutina (El engranaje ⚙️): Si la rutina base no le sirve, toca el engranaje al lado del nombre del día. Podrás eliminar ejercicios, añadir nuevos o reordenarlos. ¡Este cambio solo afecta a este alumno en particular!\n- Iniciar Entrenamiento (Botón Play ▶️): Esto es lo que tocas cuando el alumno llega al gimnasio.'),
+      div(hStyle, 'âš™ï¸ 3. Perfil del Alumno: La "Rutina"'),
+      div(pStyle, 'Al tocar un alumno, entras a su perfil. La primera pestaÃ±a es la Rutina.\n- Marcador "HOY": La app resalta el dÃ­a actual para que sepas quÃ© le toca de un vistazo.\n- Editor de Rutina (El engranaje âš™ï¸): Si la rutina base no le sirve, toca el engranaje al lado del nombre del dÃ­a. PodrÃ¡s eliminar ejercicios, aÃ±adir nuevos o reordenarlos. Â¡Este cambio solo afecta a este alumno en particular!\n- Iniciar Entrenamiento (BotÃ³n Play â–¶ï¸): Esto es lo que tocas cuando el alumno llega al gimnasio.'),
       
-      div(hStyle, '⏱️ 4. El "Modo Entrenamiento" Activo'),
-      div(pStyle, 'Aquí registras lo que sucede en el "barro" de la sesión.\n- Ajuste Rápido (+/-): La app te muestra el peso que levantó la sesión anterior. Si hoy está más fuerte, súbele 2.5kg.\n- Temporizador de Descanso: Tras cada serie, toca el botón ámbar. Elije el tiempo y la app te avisará.\n- Check de Completado: Fundamental marcarlo al terminar.\n- Automatización de Carga Progresiva: Al tocar "Guardar Sesión", la app reescribe la rutina base de ese alumno con los pesos que levantó hoy.'),
+      div(hStyle, 'â±ï¸ 4. El "Modo Entrenamiento" Activo'),
+      div(pStyle, 'AquÃ­ registras lo que sucede en el "barro" de la sesiÃ³n.\n- Ajuste RÃ¡pido (+/-): La app te muestra el peso que levantÃ³ la sesiÃ³n anterior. Si hoy estÃ¡ mÃ¡s fuerte, sÃºbele 2.5kg.\n- Temporizador de Descanso: Tras cada serie, toca el botÃ³n Ã¡mbar. Elije el tiempo y la app te avisarÃ¡.\n- Check de Completado: Fundamental marcarlo al terminar.\n- AutomatizaciÃ³n de Carga Progresiva: Al tocar "Guardar SesiÃ³n", la app reescribe la rutina base de ese alumno con los pesos que levantÃ³ hoy.'),
       
-      div(hStyle, '📈 5. Pestaña "Fuerza"'),
-      div(pStyle, 'El peso en la balanza no importa si no hay fuerza.\n- Selector de Ejercicio: Un menú desplegable que lista todos los ejercicios que el alumno ha hecho.\n- Gráfico Evolutivo: Traza la curva de fuerza a lo largo del tiempo.\n- Calculadora de 1RM Estimado: El número en grande es el 1RM (Repetición Máxima) estimado histórico del alumno. Arriba, te muestra cuánto mejoró respecto a la sesión anterior.'),
+      div(hStyle, 'ðŸ“ˆ 5. PestaÃ±a "Fuerza"'),
+      div(pStyle, 'El peso en la balanza no importa si no hay fuerza.\n- Selector de Ejercicio: Un menÃº desplegable que lista todos los ejercicios que el alumno ha hecho.\n- GrÃ¡fico Evolutivo: Traza la curva de fuerza a lo largo del tiempo.\n- Calculadora de 1RM Estimado: El nÃºmero en grande es el 1RM (RepeticiÃ³n MÃ¡xima) estimado histÃ³rico del alumno. Arriba, te muestra cuÃ¡nto mejorÃ³ respecto a la sesiÃ³n anterior.'),
       
-      div(hStyle, '⚖️ 6. Pestaña "Físico"'),
-      div(pStyle, 'Para el seguimiento del cambio estético.\n- Registro Avanzado (+): Permite ingresar Peso y Altura obligatoriamente (para calcular el IMC automático) y, opcionalmente, % de Grasa y Músculo.\n- Gráfico de Peso: Visualiza la pérdida o ganancia de peso.\n- Gráfico Dual: Si registraste porcentajes, la app dibujará una gráfica comparativa para ver cómo se cruzan las curvas de recomposición corporal a lo largo del tiempo.'),
+      div(hStyle, 'âš–ï¸ 6. PestaÃ±a "FÃ­sico"'),
+      div(pStyle, 'Para el seguimiento del cambio estÃ©tico.\n- Registro Avanzado (+): Permite ingresar Peso y Altura obligatoriamente (para calcular el IMC automÃ¡tico) y, opcionalmente, % de Grasa y MÃºsculo.\n- GrÃ¡fico de Peso: Visualiza la pÃ©rdida o ganancia de peso.\n- GrÃ¡fico Dual: Si registraste porcentajes, la app dibujarÃ¡ una grÃ¡fica comparativa para ver cÃ³mo se cruzan las curvas de recomposiciÃ³n corporal a lo largo del tiempo.'),
       
-      div(hStyle, '🛡️ 7. Seguridad y Backups'),
-      div(pStyle, 'ATENCIÓN: Esta app usa la filosofía Local-First para ser ultrarrápida. Los datos de los alumnos viven dentro de tu celular. Si borras el caché del navegador, pierdes los datos.\nEl Rescate: Desde la pantalla principal "Mis Alumnos", toca el botón de Ajustes.\nToca "Exportar Backup". Esto te descargará un archivo .json. Guárdalo en tu Google Drive una vez por semana.\nSi cambias de celular, entras a Ajustes -> "Importar Backup" y seleccionas el archivo. Recuperarás a todos tus alumnos.'),
+      div(hStyle, 'ðŸ›¡ï¸ 7. Seguridad y Backups'),
+      div(pStyle, 'ATENCIÃ“N: Esta app usa la filosofÃ­a Local-First para ser ultrarrÃ¡pida. Los datos de los alumnos viven dentro de tu celular. Si borras el cachÃ© del navegador, pierdes los datos.\nEl Rescate: Desde la pantalla principal "Mis Alumnos", toca el botÃ³n de Ajustes.\nToca "Exportar Backup". Esto te descargarÃ¡ un archivo .json. GuÃ¡rdalo en tu Google Drive una vez por semana.\nSi cambias de celular, entras a Ajustes -> "Importar Backup" y seleccionas el archivo. RecuperarÃ¡s a todos tus alumnos.'),
       
       btn({className: 'btn-p', 'data-action': 'close-modal', style: {marginTop: '24px'}}, 'Cerrar Manual')
     );
@@ -1250,7 +1251,7 @@ function buildModal(key) {
       div({className: 'syne', style: {fontSize: '20px', fontWeight: '800', marginBottom: '12px'}}, 'Hora del Respaldo'),
       div({style: {color: 'var(--t2)', fontSize: '14px', marginBottom: '24px', lineHeight: '1.5'}}, 'Para asegurar que no pierdas el progreso de tus alumnos si el navegador borra sus datos, te recomendamos descargar un backup hoy.'),
       btn({className: 'btn-p', 'data-action': 'export-data', style: {width: '100%', marginBottom: '10px'}}, icon('fa-solid fa-download'), 'Descargar Backup (JSON)'),
-      btn({className: 'btn-g', 'data-action': 'close-modal', style: {width: '100%'}}, 'Más tarde')
+      btn({className: 'btn-g', 'data-action': 'close-modal', style: {width: '100%'}}, 'MÃ¡s tarde')
     );
     overlay.appendChild(box);
   }
@@ -1260,13 +1261,13 @@ function buildModal(key) {
     const list = div({style: {display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', maxHeight: '50vh', overflowY: 'auto'}});
     
     if (!DB.presets || !DB.presets.length) {
-      list.appendChild(div({style: {color: 'var(--t3)', fontSize: '13px', textAlign: 'center', padding: '20px 0'}}, 'No hay presets guardados. Creá uno nuevo.'));
+      list.appendChild(div({style: {color: 'var(--t3)', fontSize: '13px', textAlign: 'center', padding: '20px 0'}}, 'No hay presets guardados. CreÃ¡ uno nuevo.'));
     } else {
       DB.presets.forEach(p => {
         const row = div({style: {display: 'flex', alignItems: 'center', background: 'var(--s2)', padding: '12px', borderRadius: 'var(--r)', border: '1px solid var(--bd)'}},
           div({style: {flex: '1', cursor: 'pointer'}, 'data-action': 'open-edit-preset', 'data-pid': p.id},
             div({className: 'syne', style: {fontWeight: '700', fontSize: '15px', color: 'var(--t1)'}}, p.name),
-            div({style: {fontSize: '12px', color: 'var(--t3)', marginTop: '2px'}}, `${p.exercises.length} ejercicios · ${p.focus}`)
+            div({style: {fontSize: '12px', color: 'var(--t3)', marginTop: '2px'}}, `${p.exercises.length} ejercicios Â· ${p.focus}`)
           ),
           btn({className: 'btn-i', 'data-action': 'delete-preset', 'data-pid': p.id, style: {padding: '8px', color: 'var(--red)'}}, icon('fa-solid fa-trash'))
         );
@@ -1276,7 +1277,7 @@ function buildModal(key) {
 
     const box = div({className: 'modal-box'},
       div({className: 'syne', style: {fontSize: '22px', fontWeight: '800', marginBottom: '8px'}}, 'Gestor de Presets'),
-      div({style: {color: 'var(--t2)', fontSize: '13px', marginBottom: '20px'}}, 'Creá plantillas de rutinas para aplicarlas rápidamente a tus alumnos.'),
+      div({style: {color: 'var(--t2)', fontSize: '13px', marginBottom: '20px'}}, 'CreÃ¡ plantillas de rutinas para aplicarlas rÃ¡pidamente a tus alumnos.'),
       list,
       div({style: {display: 'flex', gap: '10px'}},
         btn({className: 'btn-g', style: {flex: '1'}, 'data-action': 'close-modal'}, 'Cerrar'),
@@ -1294,7 +1295,7 @@ function buildModal(key) {
     const exList = div({style: {display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', maxHeight: '40vh', overflowY: 'auto'}});
     
     if (!p.exercises.length) {
-      exList.appendChild(div({style: {color: 'var(--t3)', fontSize: '13px', textAlign: 'center', padding: '20px 0'}}, 'Aún no hay ejercicios en este preset.'));
+      exList.appendChild(div({style: {color: 'var(--t3)', fontSize: '13px', textAlign: 'center', padding: '20px 0'}}, 'AÃºn no hay ejercicios en este preset.'));
     } else {
       p.exercises.forEach((ex, i) => {
         const exRow = div({style: {display: 'flex', alignItems: 'center', background: 'var(--s2)', padding: '10px 12px', borderRadius: 'var(--r)', border: '1px solid var(--bd)'}},
@@ -1322,7 +1323,7 @@ function buildModal(key) {
         ),
         div({style: {flex: '1'}},
           div({style: {fontSize: '11px', fontWeight: '700', color: 'var(--t3)', textTransform: 'uppercase', marginBottom: '6px'}}, 'Enfoque'),
-          el('input', {className: 'inp', value: p.focus, 'data-action': 'edit-preset-focus', placeholder: 'Pecho/Tríceps', style: {width: '100%'}})
+          el('input', {className: 'inp', value: p.focus, 'data-action': 'edit-preset-focus', placeholder: 'Pecho/TrÃ­ceps', style: {width: '100%'}})
         )
       ),
       
@@ -1370,7 +1371,7 @@ function buildModal(key) {
         },
           div({style: {flex: '1'}},
             div({className: 'syne', style: {fontWeight: '700', fontSize: '15px', color: 'var(--t1)'}}, p.name),
-            div({style: {fontSize: '12px', color: 'var(--t3)', marginTop: '2px'}}, `${p.exercises.length} ejercicios · ${p.focus}`)
+            div({style: {fontSize: '12px', color: 'var(--t3)', marginTop: '2px'}}, `${p.exercises.length} ejercicios Â· ${p.focus}`)
           ),
           div({style: {color: 'var(--t2)'}}, icon('fa-solid fa-chevron-right'))
         );
@@ -1380,7 +1381,7 @@ function buildModal(key) {
 
     const box = div({className: 'modal-box'},
       div({className: 'syne', style: {fontSize: '22px', fontWeight: '800', marginBottom: '8px'}}, 'Cargar Preset'),
-      div({style: {color: 'var(--t2)', fontSize: '13px', marginBottom: '20px'}}, 'Selecciona un preset para aplicarlo a este día.'),
+      div({style: {color: 'var(--t2)', fontSize: '13px', marginBottom: '20px'}}, 'Selecciona un preset para aplicarlo a este dÃ­a.'),
       list,
       btn({className: 'btn-g', 'data-action': 'close-modal'}, 'Cancelar')
     );
@@ -1391,7 +1392,7 @@ function buildModal(key) {
   else if (key === 'addStudent') {
     const box = div({className: 'modal-box'},
       div({className: 'syne', style: {fontSize: '22px', fontWeight: '800', marginBottom: '8px'}}, 'Nuevo Alumno'),
-      div({style: {color: 'var(--t2)', fontSize: '13px', marginBottom: '20px'}}, 'Se le asignará la Rutina Base de 4 días automáticamente.'),
+      div({style: {color: 'var(--t2)', fontSize: '13px', marginBottom: '20px'}}, 'Se le asignarÃ¡ la Rutina Base de 4 dÃ­as automÃ¡ticamente.'),
       el('input', {id: 'modal-name', className: 'inp', placeholder: 'Nombre completo del alumno', 'data-action': 'modal-name-inp', style: {marginBottom: '16px'}}),
       div({style: {display: 'flex', gap: '10px'}},
         btn({className: 'btn-g', style: {flex: '1'}, 'data-action': 'close-modal'}, 'Cancelar'),
@@ -1424,8 +1425,8 @@ function buildModal(key) {
   // Delete Confirmation Modal
   else if (key === 'deleteStudent') {
     const box = div({className: 'modal-box'},
-      div({className: 'syne', style: {fontSize: '22px', fontWeight: '800', marginBottom: '8px', color: 'var(--red)'}}, '¿Eliminar Alumno?'),
-      div({style: {color: 'var(--t2)', fontSize: '14px', marginBottom: '24px', lineHeight: '1.5'}}, 'Esta acción borrará de forma permanente al alumno, sus rutinas registradas y todo su historial de progresos. No se puede deshacer.'),
+      div({className: 'syne', style: {fontSize: '22px', fontWeight: '800', marginBottom: '8px', color: 'var(--red)'}}, 'Â¿Eliminar Alumno?'),
+      div({style: {color: 'var(--t2)', fontSize: '14px', marginBottom: '24px', lineHeight: '1.5'}}, 'Esta acciÃ³n borrarÃ¡ de forma permanente al alumno, sus rutinas registradas y todo su historial de progresos. No se puede deshacer.'),
       div({style: {display: 'flex', gap: '10px'}},
         btn({className: 'btn-g', style: {flex: '1'}, 'data-action': 'close-modal'}, 'Cancelar'),
         btn({className: 'btn-p', style: {flex: '1', background: 'var(--red)', boxShadow: '0 4px 12px rgba(255, 77, 109, 0.25)'}, 'data-action': 'confirm-delete-student'}, 'Confirmar')
@@ -1437,8 +1438,8 @@ function buildModal(key) {
   // Cancel Workout Warning Modal
   else if (key === 'cancelWorkout') {
     const box = div({className: 'modal-box'},
-      div({className: 'syne', style: {fontSize: '22px', fontWeight: '800', marginBottom: '8px'}}, '¿Salir del Entrenamiento?'),
-      div({style: {color: 'var(--t2)', fontSize: '14px', marginBottom: '24px'}}, 'Si salís ahora, perderás el progreso no guardado de esta sesión.'),
+      div({className: 'syne', style: {fontSize: '22px', fontWeight: '800', marginBottom: '8px'}}, 'Â¿Salir del Entrenamiento?'),
+      div({style: {color: 'var(--t2)', fontSize: '14px', marginBottom: '24px'}}, 'Si salÃ­s ahora, perderÃ¡s el progreso no guardado de esta sesiÃ³n.'),
       div({style: {display: 'flex', gap: '10px'}},
         btn({className: 'btn-g', style: {flex: '1'}, 'data-action': 'close-modal'}, 'Continuar'),
         btn({className: 'btn-p', style: {flex: '1', background: 'var(--s3)', color: 'var(--t2)', border: '1px solid var(--bd2)', boxShadow: 'none'}, 'data-action': 'confirm-cancel-workout'}, 'Salir')
@@ -1455,7 +1456,7 @@ function buildModal(key) {
     const exList = div({style: {display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', maxHeight: '40vh', overflowY: 'auto'}});
     
     if (day.isRest) {
-      exList.appendChild(div({style: {color: 'var(--t3)', fontSize: '13px', textAlign: 'center', padding: '20px 0'}}, 'Día de descanso. No hay ejercicios.'));
+      exList.appendChild(div({style: {color: 'var(--t3)', fontSize: '13px', textAlign: 'center', padding: '20px 0'}}, 'DÃ­a de descanso. No hay ejercicios.'));
     } else {
       day.exercises.forEach((ex, i) => {
         const exRow = div({style: {display: 'flex', alignItems: 'center', background: 'var(--s2)', padding: '10px 12px', borderRadius: 'var(--r)', border: '1px solid var(--bd)'}},
@@ -1475,17 +1476,17 @@ function buildModal(key) {
 
     const box = div({className: 'modal-box'},
       div({style: {display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}},
-        div({className: 'syne', style: {fontSize: '20px', fontWeight: '800'}}, `Editar Día`),
+        div({className: 'syne', style: {fontSize: '20px', fontWeight: '800'}}, `Editar DÃ­a`),
         div({style: {display: 'flex', gap: '8px'}},
           btn({className: 'btn-i', 'data-action': 'open-select-preset', style: {color: 'var(--blue)', padding: '4px 8px'}}, icon('fa-solid fa-download'), ' Preset'),
-          btn({className: 'btn-i', 'data-action': 'delete-day', style: {color: 'var(--red)', padding: '4px 8px'}}, icon('fa-solid fa-trash'), ' Borrar Día')
+          btn({className: 'btn-i', 'data-action': 'delete-day', style: {color: 'var(--red)', padding: '4px 8px'}}, icon('fa-solid fa-trash'), ' Borrar DÃ­a')
         )
       ),
       
       div({style: {display: 'flex', gap: '10px', marginBottom: '16px'}},
         div({style: {flex: '1'}},
-          div({style: {fontSize: '11px', fontWeight: '700', color: 'var(--t3)', textTransform: 'uppercase', marginBottom: '6px'}}, 'Nombre del Día'),
-          el('input', {className: 'inp', value: day.day, 'data-action': 'edit-day-name', placeholder: 'Ej: Lunes o Día 1', style: {width: '100%'}})
+          div({style: {fontSize: '11px', fontWeight: '700', color: 'var(--t3)', textTransform: 'uppercase', marginBottom: '6px'}}, 'Nombre del DÃ­a'),
+          el('input', {className: 'inp', value: day.day, 'data-action': 'edit-day-name', placeholder: 'Ej: Lunes o DÃ­a 1', style: {width: '100%'}})
         ),
         div({style: {flex: '1'}},
           div({style: {fontSize: '11px', fontWeight: '700', color: 'var(--t3)', textTransform: 'uppercase', marginBottom: '6px'}}, 'Enfoque / Grupo'),
@@ -1495,7 +1496,7 @@ function buildModal(key) {
       
       div({style: {display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', padding: '12px', background: 'var(--s2)', borderRadius: 'var(--r)'}},
         el('input', {type: 'checkbox', checked: day.isRest, 'data-action': 'toggle-day-rest', style: {width: '18px', height: '18px'}}),
-        div({className: 'syne', style: {fontWeight: '700', fontSize: '14px'}}, 'Marcar como día de descanso')
+        div({className: 'syne', style: {fontWeight: '700', fontSize: '14px'}}, 'Marcar como dÃ­a de descanso')
       ),
       
       div({style: {display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px'}},
@@ -1538,7 +1539,7 @@ function buildModal(key) {
       ['Peso (kg) *', 'm-weight', 'number', '0.1', ''],
       ['Altura (cm) *', 'm-height', 'number', '1', lastH],
       ['% Grasa', 'm-fat', 'number', '0.1', ''],
-      ['% Músculo', 'm-muscle', 'number', '0.1', '']
+      ['% MÃºsculo', 'm-muscle', 'number', '0.1', '']
     ].forEach(([label, id, type, step, val]) => {
       const col = div({});
       col.appendChild(div({className: 'syne', style: {fontSize: '11px', fontWeight: '800', color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '6px'}}, label));
@@ -1547,7 +1548,7 @@ function buildModal(key) {
     });
 
     const box = div({className: 'modal-box'},
-      div({className: 'syne', style: {fontSize: '22px', fontWeight: '800', marginBottom: '16px'}}, 'Nueva Medición'),
+      div({className: 'syne', style: {fontSize: '22px', fontWeight: '800', marginBottom: '16px'}}, 'Nueva MediciÃ³n'),
       grid,
       div({style: {display: 'flex', gap: '10px'}},
         btn({className: 'btn-g', style: {flex: '1'}, 'data-action': 'close-modal'}, 'Cancelar'),
@@ -1621,9 +1622,9 @@ function buildEmpty(ic, title, sub) {
   );
 }
 
-// ═══════════════════════════════════════════════════════════
-//  LAYER 7 — INDEPENDENT TIMER ENGINE
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  LAYER 7 â€” INDEPENDENT TIMER ENGINE
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function persistActiveSession() {
   if (UI.view === 'workout' && UI.wDay) {
     DB.activeSession = {
@@ -1693,9 +1694,9 @@ function stopRestTimer() {
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-//  LAYER 8 — DELEGATED GLOBAL EVENTS ROUTER
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  LAYER 8 â€” DELEGATED GLOBAL EVENTS ROUTER
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-action]');
   if (!t) return;
@@ -1703,7 +1704,7 @@ document.addEventListener('click', e => {
 
   if (action === 'manual-sync') {
     if (window.SyncEngine) window.SyncEngine.handleManualSync();
-    else alert('Error: Tu navegador bloqueó la conexión (AdBlocker) o estás viendo una versión vieja (Caché). Prueba abrir la página en Modo Incógnito o borrar la caché del navegador.');
+    else alert('Error: Tu navegador bloqueÃ³ la conexiÃ³n (AdBlocker) o estÃ¡s viendo una versiÃ³n vieja (CachÃ©). Prueba abrir la pÃ¡gina en Modo IncÃ³gnito o borrar la cachÃ© del navegador.');
     closeModalDOM();
     return;
   }
@@ -1713,16 +1714,16 @@ document.addEventListener('click', e => {
   }
   if (action === 'run-diagnostics') {
     if (!window.SyncEngine || !window.SyncEngine.user) {
-      alert("No estás conectado a la nube.");
+      alert("No estÃ¡s conectado a la nube.");
       return;
     }
-    alert("Iniciando diagnóstico... Por favor espera.");
+    alert("Iniciando diagnÃ³stico... Por favor espera.");
     const u = window.SyncEngine.user.id;
     window.supabaseClient.from('students').select('*').then(({data, error}) => {
       if (error) {
-        alert("DIAGNÓSTICO (Error): " + error.message);
+        alert("DIAGNÃ“STICO (Error): " + error.message);
       } else {
-        alert("DIAGNÓSTICO (Éxito):\nUsuario ID: " + u.substr(0,8) + "...\nAlumnos en Nube: " + (data ? data.length : 0) + "\nAlumnos en Celular: " + DB.students.length);
+        alert("DIAGNÃ“STICO (Ã‰xito):\nUsuario ID: " + u.substr(0,8) + "...\nAlumnos en Nube: " + (data ? data.length : 0) + "\nAlumnos en Celular: " + DB.students.length);
       }
     });
     return;
@@ -1793,7 +1794,7 @@ document.addEventListener('click', e => {
     return;
   }
   if (action === 'delete-preset') {
-    if (confirm('¿Eliminar este preset?')) {
+    if (confirm('Â¿Eliminar este preset?')) {
       DB.presets = DB.presets.filter(x => x.id !== t.dataset.pid);
       persist();
       openModal('presetManager');
@@ -1922,7 +1923,7 @@ document.addEventListener('click', e => {
   
   if (action === 'add-day') {
     const s = getStudent();
-    s.routine.push({day: `Día ${s.routine.length + 1}`, focus: 'Nuevo Enfoque', isRest: false, exercises: []});
+    s.routine.push({day: `DÃ­a ${s.routine.length + 1}`, focus: 'Nuevo Enfoque', isRest: false, exercises: []});
     markRoutineUpdated(s);
     persist();
     fillTab(s);
@@ -2082,7 +2083,7 @@ document.addEventListener('input', e => {
     if (!p) return;
     const w = parseFloat(p.querySelector('#rm-w')?.value) || 0;
     const r = parseInt(p.querySelector('#rm-r')?.value) || 0;
-    const res = (w > 0 && r > 0) ? Math.round(w * (1 + 0.0333 * r)) + 'kg' : '—';
+    const res = (w > 0 && r > 0) ? Math.round(w * (1 + 0.0333 * r)) + 'kg' : 'â€”';
     const resultEl = p.querySelector('#rm-result');
     if (resultEl) resultEl.textContent = res;
     return;
@@ -2171,9 +2172,9 @@ function switchTab(tab) {
   fillTab(getStudent());
 }
 
-// ═══════════════════════════════════════════════════════════
-//  LAYER 9 — ACTIONS (STATE CHANGE MUTATIONS)
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  LAYER 9 â€” ACTIONS (STATE CHANGE MUTATIONS)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function doAddStudent() {
   const inp = document.getElementById('modal-name');
   const name = (inp?.value || '').trim();
@@ -2332,7 +2333,7 @@ function handleImport(e) {
         alert('Datos importados correctamente.');
         location.reload();
       } else {
-        alert('Error: El archivo no tiene el formato correcto (faltan alumnos o el archivo está dañado).');
+        alert('Error: El archivo no tiene el formato correcto (faltan alumnos o el archivo estÃ¡ daÃ±ado).');
       }
     } catch (err) {
       alert('Error al leer el archivo JSON.');
@@ -2341,9 +2342,9 @@ function handleImport(e) {
   reader.readAsText(file);
 }
 
-// ═══════════════════════════════════════════════════════════
-//  LAYER 10 — BOOTSTRAP INITIALIZATION
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  LAYER 10 â€” BOOTSTRAP INITIALIZATION
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 function checkBackupPrompt() {
   const lastPrompt = localStorage.getItem('fittrack_last_backup_prompt');
@@ -2374,3 +2375,5 @@ if (DB.activeSession && DB.activeSession.wDay) {
 checkBackupPrompt();
 
 })();
+
+
