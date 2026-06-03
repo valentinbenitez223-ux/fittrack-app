@@ -30,8 +30,16 @@ window.SyncEngine = {
       alert('Error: No se pudo conectar con Supabase. Verifica tu conexión o que la clave y URL sean correctas.');
       return;
     }
-    if (!this.user) this.showLoginModal();
-    else this.syncAll();
+    if (!this.user) {
+      this.showLoginModal();
+    } else if (!this.workspaceId) {
+      alert('Error: La base de datos rechazó tu acceso. Esto suele ocurrir si tu usuario fue borrado y recreado, pero tu navegador sigue usando la sesión vieja. \n\nVamos a cerrar tu sesión local automáticamente. Por favor, vuelve a iniciar sesión.');
+      supabaseClient.auth.signOut().then(() => {
+        window.location.reload();
+      });
+    } else {
+      this.syncAll();
+    }
   },
 
   init() {
