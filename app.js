@@ -342,6 +342,13 @@ const icon = cls => {
   return i;
 };
 
+window.addEventListener('error', e => {
+  alert('CRITICAL ERROR: ' + e.message + ' at ' + e.filename + ':' + e.lineno);
+});
+window.addEventListener('unhandledrejection', e => {
+  alert('UNHANDLED PROMISE ERROR: ' + (e.reason && e.reason.message ? e.reason.message : JSON.stringify(e.reason)));
+});
+
 function stampTemplate(id) {
   const tpl = document.getElementById(id);
   root.innerHTML = '';
