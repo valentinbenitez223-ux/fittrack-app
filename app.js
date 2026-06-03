@@ -1191,6 +1191,11 @@ function buildModal(key) {
       btn({className: 'btn-g', 'data-action': 'export-data', style: {marginBottom: '10px'}}, icon('fa-solid fa-download'), 'Exportar Backup (JSON)'),
       btn({className: 'btn-g', 'data-action': 'import-data-click', style: {marginBottom: '24px'}}, icon('fa-solid fa-upload'), 'Importar Backup (JSON)'),
       
+      div({className: 'syne', style: {fontSize: '11px', fontWeight: '800', marginBottom: '12px', color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.08em'}}, 'Sincronización en la Nube'),
+      (window.SyncEngine && window.SyncEngine.user)
+        ? btn({className: 'btn-p', 'data-action': 'sync-logout', style: {marginBottom: '24px', background: 'var(--red)', borderColor: 'var(--red)'}}, icon('fa-solid fa-arrow-right-from-bracket'), 'Cerrar Sesión')
+        : btn({className: 'btn-g', 'data-action': 'manual-sync', style: {marginBottom: '24px', color: 'var(--blue)'}}, icon('fa-solid fa-cloud'), 'Iniciar Sesión en la Nube'),
+      
       btn({className: 'btn-p', 'data-action': 'close-modal'}, 'Cerrar Ajustes')
     );
     overlay.appendChild(box);
@@ -1691,6 +1696,11 @@ document.addEventListener('click', e => {
   if (action === 'manual-sync') {
     if (window.SyncEngine) window.SyncEngine.handleManualSync();
     else alert('Error: Tu navegador bloqueó la conexión (AdBlocker) o estás viendo una versión vieja (Caché). Prueba abrir la página en Modo Incógnito o borrar la caché del navegador.');
+    closeModalDOM();
+    return;
+  }
+  if (action === 'sync-logout') {
+    if (window.SyncEngine) window.SyncEngine.logout();
     return;
   }
 

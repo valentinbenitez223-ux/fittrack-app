@@ -32,11 +32,6 @@ window.SyncEngine = {
     }
     if (!this.user) {
       this.showLoginModal();
-    } else if (!this.workspaceId) {
-      alert('Error: La base de datos rechazó tu acceso. Esto suele ocurrir si tu usuario fue borrado y recreado, pero tu navegador sigue usando la sesión vieja. \n\nVamos a cerrar tu sesión local automáticamente. Por favor, vuelve a iniciar sesión.');
-      supabaseClient.auth.signOut().then(() => {
-        window.location.reload();
-      });
     } else {
       this.syncAll();
     }
@@ -80,15 +75,9 @@ window.SyncEngine = {
 
   async fetchWorkspace() {
     this.updateUI('syncing');
-    const { data, error } = await supabaseClient.from('users').select('workspace_id').eq('id', this.user.id).single();
-    if (data && data.workspace_id) {
-      this.workspaceId = data.workspace_id;
-      this.updateUI('synced');
-      this.pullRemoteChanges();
-    } else {
-      console.error('El usuario no tiene workspace asignado.', error);
-      this.updateUI('error');
-    }
+    this.workspaceId = this.user.id;
+    this.updateUI('synced');
+    this.pullRemoteChanges();
   },
 
   updateUI(state) {
@@ -347,6 +336,12 @@ window.SyncEngine = {
         this.fetchWorkspace();
       }
     });
+  },
+
+  logout() {
+    if (supabaseClient) {
+      supabaseClient.auth.signOut().then(() => window.location.reload());
+    }
   }
 };
 
