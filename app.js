@@ -1717,13 +1717,36 @@ document.addEventListener('click', e => {
       alert("No estás conectado a la nube.");
       return;
     }
-    alert("Iniciando diagnóstico... Por favor espera.");
+    alert("Iniciando diagnóstico profundo... Por favor espera.");
     const u = window.SyncEngine.user.id;
-    window.supabaseClient.from('students').select('*').then(({data, error}) => {
+    let pendingCount = DB.students.filter(s => s.syncStatus === 'pending').length;
+    
+    window.supabaseClient.from('students').select('*').then(async ({data, error}) => {
       if (error) {
-        alert("DIAGNÓSTICO (Error): " + error.message);
+        alert("DIAGNÓSTICO (Error lectura): " + error.message);
       } else {
-        alert("DIAGNÓSTICO (Éxito):\nUsuario ID: " + u.substr(0,8) + "...\nAlumnos en Nube: " + (data ? data.length : 0) + "\nAlumnos en Celular: " + DB.students.length);
+        alert(`ESTADO:\nNube: ${data ? data.length : 0} alumnos\nCelular: ${DB.students.length} alumnos\nPendientes de subir: ${pendingCount}`);
+        
+        if (pendingCount > 0) {
+          const testS = DB.students.find(s => s.syncStatus === 'pending');
+          alert("Intentando forzar la subida del alumno pendiente...");
+          const { error: upErr } = await window.supabaseClient.from('students').upsert({
+            id: testS.id,
+            name: testS.name,
+            is_deleted: !!testS.isDeleted,
+            created_by: u
+          });
+          if (upErr) {
+            alert("DIAGNÓSTICO (Fallo subida): " + upErr.message + " | Detalles: " + JSON.stringify(upErr));
+          } else {
+            testS.syncStatus = 'synced';
+            persist();
+            alert("¡ÉXITO! El alumno subió correctamente. El problema era que el celular no estaba ejecutando la sincronización en segundo plano.");
+          }
+        } else if (data && data.length > 0 && DB.students.length === 0) {
+           alert("Hay datos en la nube pero no en el celular. Forzando descarga...");
+           window.SyncEngine.pullRemoteChanges();
+        }
       }
     });
     return;
