@@ -25,19 +25,16 @@ window.SyncEngine = {
   isSyncing: false,
   lastSyncAt: localStorage.getItem('fitTrackLastSync') || null,
 
+  handleManualSync() {
+    if (!supabase) {
+      alert('Error: No se pudo conectar con Supabase. Verifica tu conexión o que la clave y URL sean correctas.');
+      return;
+    }
+    if (!this.user) this.showLoginModal();
+    else this.syncAll();
+  },
+
   init() {
-    // Delegar click en el botón de sync manual (siempre activo para reportar errores)
-    document.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-action="manual-sync"]');
-      if (btn) {
-        if (!supabase) {
-          alert('Error: No se pudo conectar con Supabase. Verifica tu conexión o que la clave y URL sean correctas.');
-          return;
-        }
-        if (!this.user) this.showLoginModal();
-        else this.syncAll();
-      }
-    });
 
     if (!supabase) {
       console.error('Supabase no está cargado');
