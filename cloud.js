@@ -69,17 +69,16 @@ window.SyncEngine = {
 
     // Auto-sync interval (cada 3 minutos)
     setInterval(() => {
-      if (this.user && this.workspaceId && navigator.onLine) {
+      if (this.user && navigator.onLine) {
         this.syncAll();
       }
     }, 180000);
   },
 
   async fetchWorkspace() {
-    this.updateUI('syncing');
+    if (!this.user) return;
     this.workspaceId = this.user.id;
-    this.updateUI('synced');
-    this.pullRemoteChanges();
+    await this.syncAll();
   },
 
   updateUI(state) {
@@ -104,7 +103,7 @@ window.SyncEngine = {
   },
 
   async syncAll() {
-    if (this.isSyncing || !this.user || !this.workspaceId || !navigator.onLine) return;
+    if (this.isSyncing || !this.user || !navigator.onLine) return;
     this.isSyncing = true;
     this.updateUI('syncing');
 
@@ -124,7 +123,16 @@ window.SyncEngine = {
     // Escanea DB local y hace push de entidades pending
     if (!window.DB || !window.DB.students) return;
 
+    let changed = false;
+    let hadError = false;
+    const reportError = (label, error) => {
+      hadError = true;
+      console.error(label, error);
+    };
+
     for (let s of window.DB.students) {
+      let studentFailed = false;
+
       // 1. Student metadata
       if (s.syncStatus === 'pending') {
         const { error } = await supabaseClient.from('students').upsert({
@@ -134,8 +142,17 @@ window.SyncEngine = {
           created_by: this.user.id
           // updated_at is handled by server trigger
         });
-        if (!error) s.syncStatus = 'synced';
-        else alert('Error guardando alumno: ' + error.message);
+        if (!error) {
+          s.syncStatus = 'synced';
+          changed = true;
+        } else {
+          studentFailed = true;
+          reportError('Error guardando alumno:', error);
+        }
+      }
+
+      if (studentFailed) {
+        continue;
       }
 
       // 2. Routine
@@ -145,7 +162,12 @@ window.SyncEngine = {
           content: s.routine,
           created_by: this.user.id
         });
-        if (!error) s.routineSyncStatus = 'synced';
+        if (!error) {
+          s.routineSyncStatus = 'synced';
+          changed = true;
+        } else {
+          reportError('Error guardando rutina:', error);
+        }
       }
 
       // 3. Notes (Upsert)
@@ -155,13 +177,18 @@ window.SyncEngine = {
           content: s.notes || '',
           created_by: this.user.id
         });
-        if (!error) s.notesSyncStatus = 'synced';
+        if (!error) {
+          s.notesSyncStatus = 'synced';
+          changed = true;
+        } else {
+          reportError('Error guardando notas:', error);
+        }
       }
 
       // 4. Measurements (Append only)
-      for (let m of s.measurements) {
+      for (let m of (s.measurements || [])) {
         if (m.syncStatus === 'pending') {
-          const { error } = await supabaseClient.from('measurements').insert({
+          const { error } = await supabaseClient.from('measurements').upsert({
             id: m.id,
             student_id: s.id,
             weight: m.weight,
@@ -171,14 +198,19 @@ window.SyncEngine = {
             date_str: m.date,
             created_by: this.user.id
           });
-          if (!error) m.syncStatus = 'synced';
+          if (!error) {
+            m.syncStatus = 'synced';
+            changed = true;
+          } else {
+            reportError('Error guardando medicion:', error);
+          }
         }
       }
 
       // 5. Sessions (Append only)
-      for (let sess of s.history) {
+      for (let sess of (s.history || [])) {
         if (sess.syncStatus === 'pending') {
-          const { error } = await supabaseClient.from('sessions').insert({
+          const { error } = await supabaseClient.from('sessions').upsert({
             id: sess.id,
             student_id: s.id,
             exercises: sess.exercises,
@@ -188,19 +220,23 @@ window.SyncEngine = {
             date_iso: sess.dateISO,
             created_by: this.user.id
           });
-          if (!error) sess.syncStatus = 'synced';
+          if (!error) {
+            sess.syncStatus = 'synced';
+            changed = true;
+          } else {
+            reportError('Error guardando sesion:', error);
+          }
         }
       }
     }
 
-    if (window.persist) window.persist();
+    if (changed && window.persist) window.persist({ skipSync: true });
+    if (hadError) throw new Error('No se pudieron subir todos los cambios locales.');
   },
 
   async pullRemoteChanges() {
     if (!window.DB || !window.DB.students) return;
     
-    // FULL RESTORE check
-    const isFullRestore = !this.lastSyncAt;
     const lastSync = this.lastSyncAt || '2000-01-01T00:00:00Z';
     
     let maxServerTime = 0;
@@ -210,13 +246,14 @@ window.SyncEngine = {
     };
 
     // Pull Students (Last write wins)
-    const { data: students } = await supabaseClient.from('students').select('*').gt('updated_at', lastSync);
+    const { data: students, error: studentsError } = await supabaseClient.from('students').select('*').gt('updated_at', lastSync);
+    if (studentsError) throw studentsError;
     if (students && students.length) {
       students.forEach(rem => {
         updateMaxTime(rem.updated_at);
         let loc = window.DB.students.find(x => x.id === rem.id);
         if (!loc) {
-          loc = { id: rem.id, name: rem.name, isDeleted: rem.is_deleted, routine: [], history: [], measurements: [], notes: '', createdAt: rem.created_at, updatedAt: rem.updated_at, syncStatus: 'synced' };
+          loc = { id: rem.id, name: rem.name, isDeleted: rem.is_deleted, routine: [], history: [], measurements: [], notes: '', createdAt: rem.created_at, updatedAt: rem.updated_at, syncStatus: 'synced', routineSyncStatus: 'synced', notesSyncStatus: 'synced' };
           window.DB.students.push(loc);
         } else if (new Date(rem.updated_at) > new Date(loc.updatedAt || 0)) {
           loc.name = rem.name;
@@ -228,7 +265,8 @@ window.SyncEngine = {
     }
 
     // Pull Routines (Last write wins)
-    const { data: routines } = await supabaseClient.from('routines').select('*').gt('updated_at', lastSync);
+    const { data: routines, error: routinesError } = await supabaseClient.from('routines').select('*').gt('updated_at', lastSync);
+    if (routinesError) throw routinesError;
     if (routines && routines.length) {
       routines.forEach(rem => {
         updateMaxTime(rem.updated_at);
@@ -242,7 +280,8 @@ window.SyncEngine = {
     }
 
     // Pull Notes (Last Write Wins)
-    const { data: notes } = await supabaseClient.from('notes').select('*').gt('updated_at', lastSync);
+    const { data: notes, error: notesError } = await supabaseClient.from('notes').select('*').gt('updated_at', lastSync);
+    if (notesError) throw notesError;
     if (notes && notes.length) {
       notes.forEach(rem => {
         updateMaxTime(rem.updated_at);
@@ -256,7 +295,8 @@ window.SyncEngine = {
     }
 
     // Pull Measurements (Append only)
-    const { data: measurements } = await supabaseClient.from('measurements').select('*').gt('created_at', lastSync);
+    const { data: measurements, error: measurementsError } = await supabaseClient.from('measurements').select('*').gt('created_at', lastSync);
+    if (measurementsError) throw measurementsError;
     if (measurements && measurements.length) {
       measurements.forEach(rem => {
         updateMaxTime(rem.created_at);
@@ -271,7 +311,8 @@ window.SyncEngine = {
     }
 
     // Pull Sessions (Append only)
-    const { data: sessions } = await supabaseClient.from('sessions').select('*').gt('created_at', lastSync);
+    const { data: sessions, error: sessionsError } = await supabaseClient.from('sessions').select('*').gt('created_at', lastSync);
+    if (sessionsError) throw sessionsError;
     if (sessions && sessions.length) {
       sessions.forEach(rem => {
         updateMaxTime(rem.created_at);
@@ -290,12 +331,25 @@ window.SyncEngine = {
       localStorage.setItem('fitTrackLastSync', this.lastSyncAt);
     }
     
-    if (window.persist) window.persist();
+    if (window.persist) window.persist({ skipSync: true });
     if (window.renderList && window.UI && window.UI.view === 'list') window.renderList();
   },
 
+  hasPendingChanges() {
+    const students = window.DB?.students;
+    if (!Array.isArray(students)) return false;
+
+    return students.some(s =>
+      s.syncStatus === 'pending' ||
+      s.routineSyncStatus === 'pending' ||
+      s.notesSyncStatus === 'pending' ||
+      (Array.isArray(s.measurements) && s.measurements.some(m => m.syncStatus === 'pending')) ||
+      (Array.isArray(s.history) && s.history.some(sess => sess.syncStatus === 'pending'))
+    );
+  },
+
   triggerPush() {
-    if (this.user && this.workspaceId && navigator.onLine) {
+    if (this.user && navigator.onLine && !this.isSyncing && this.hasPendingChanges()) {
       this.pushLocalChanges();
     }
   },
@@ -334,7 +388,6 @@ window.SyncEngine = {
         alert('Error: ' + error.message);
       } else {
         overlay.remove();
-        this.updateUI('synced');
         this.fetchWorkspace();
       }
     });

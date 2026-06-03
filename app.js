@@ -44,10 +44,25 @@ const BASE_ROUTINE = [
 ];
 
 // Helper Functions
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const isUuid = value => UUID_RE.test(String(value || ''));
 const generateId = () => {
-  return typeof crypto !== 'undefined' && crypto.randomUUID 
-    ? crypto.randomUUID() 
-    : 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 9);
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  const bytes = new Uint8Array(16);
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < bytes.length; i++) {
+      bytes[i] = Math.floor(Math.random() * 256);
+    }
+  }
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = [...bytes].map(b => b.toString(16).padStart(2, '0'));
+  return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex.slice(6, 8).join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10, 16).join('')}`;
 };
 
 const clone = x => JSON.parse(JSON.stringify(x));
@@ -208,6 +223,10 @@ function loadState() {
       p = migrateV9ToV10(p);
       localStorage.setItem(KEY, JSON.stringify(p));
     }
+
+    if (normalizeCloudIds(p)) {
+      localStorage.setItem(KEY, JSON.stringify(p));
+    }
     
     return p;
   } catch (err) {
@@ -245,10 +264,52 @@ function migrateV9ToV10(p) {
   return p;
 }
 
-function persist() {
+function normalizeCloudIds(p) {
+  if (!p.students) return false;
+  let changed = false;
+
+  p.students.forEach(s => {
+    const oldStudentId = String(s.id || '');
+    if (!isUuid(oldStudentId)) {
+      s.id = generateId();
+      s.syncStatus = 'pending';
+      s.routineSyncStatus = 'pending';
+      s.notesSyncStatus = 'pending';
+      s.updatedAt = new Date().toISOString();
+      if (p.activeSession && String(p.activeSession.studentId) === oldStudentId) {
+        p.activeSession.studentId = s.id;
+      }
+      changed = true;
+    }
+
+    if (Array.isArray(s.history)) {
+      s.history.forEach(h => {
+        if (!isUuid(h.id)) {
+          h.id = generateId();
+          h.syncStatus = 'pending';
+          changed = true;
+        }
+      });
+    }
+
+    if (Array.isArray(s.measurements)) {
+      s.measurements.forEach(m => {
+        if (!isUuid(m.id)) {
+          m.id = generateId();
+          m.syncStatus = 'pending';
+          changed = true;
+        }
+      });
+    }
+  });
+
+  return changed;
+}
+
+function persist(options = {}) {
   try {
     localStorage.setItem(KEY, JSON.stringify(DB));
-    if (window.SyncEngine) window.SyncEngine.triggerPush();
+    if (!options.skipSync && window.SyncEngine) window.SyncEngine.triggerPush();
   } catch {}
 }
 
@@ -266,6 +327,7 @@ const DB = loadState() || {
   theme: 'emerald',
   students: []
 };
+window.DB = DB;
 if (!DB.presets) DB.presets = [];
 
 // Auto-populate default presets if none exist
@@ -307,6 +369,9 @@ const UI = {
   editDayIdx: null,
   editPresetId: null
 };
+window.UI = UI;
+window.persist = persist;
+window.renderList = renderList;
 
 function getStudent() {
   return DB.students.find(s => s.id === UI.studentId);
