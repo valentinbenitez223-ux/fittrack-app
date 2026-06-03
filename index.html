@@ -51,11 +51,33 @@
           <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--t3); font-size: 14px;"></i>
           <input id="search-inp" class="inp" style="padding-left: 44px;" placeholder="Buscar alumno...">
         </div>
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-          <div class="sm" style="flex: 1;"><div class="v" id="stat-total">0</div><div class="l">Total</div></div>
-          <div class="sm" style="flex: 1;"><div class="v" id="stat-today" style="color: var(--em)">0</div><div class="l">Hoy activos</div></div>
-          <div class="sm" style="flex: 1;"><div class="v" id="stat-hist">0</div><div class="l">Con historial</div></div>
+        <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+          <div class="card sm" style="flex: 1; text-align: center; padding: 16px 8px;">
+            <div class="v" id="stat-total" style="font-size: 24px; color: var(--t1);">0</div>
+            <div class="l">Alumnos</div>
+          </div>
+          <div class="card sm" style="flex: 1; text-align: center; padding: 16px 8px; border-color: var(--em-border); background: linear-gradient(180deg, rgba(0,229,160,0.05) 0%, transparent 100%);">
+            <div class="v" id="stat-today" style="font-size: 24px; color: var(--em);">0</div>
+            <div class="l" style="color: var(--em)">Activos Hoy</div>
+          </div>
+          <div class="card sm" style="flex: 1; text-align: center; padding: 16px 8px;">
+            <div class="v" id="stat-hist" style="font-size: 24px; color: var(--t1);">0</div>
+            <div class="l">Con Historial</div>
+          </div>
         </div>
+
+        <button data-action="open-presets" class="card btn-i" style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 16px 20px; border-color: var(--bd2); cursor: pointer; background: var(--s2);">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--em-dim); color: var(--em); display: flex; align-items: center; justify-content: center; font-size: 16px;">
+              <i class="fa-solid fa-clipboard-list"></i>
+            </div>
+            <div style="text-align: left;">
+              <div class="syne" style="font-weight: 800; font-size: 15px; color: var(--t1);">Gestor de Plantillas</div>
+              <div style="font-size: 12px; color: var(--t3); margin-top: 2px;">Crea y edita tus presets de rutina</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right" style="color: var(--t3);"></i>
+        </button>
       </div>
       <div id="student-list" style="flex: 1; padding: 16px 20px 32px; display: flex; flex-direction: column; gap: 12px;"></div>
     </div>

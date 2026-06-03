@@ -89,21 +89,28 @@ function totalVolume(s) {
 function calcStreak(s) {
   if (!s.history || !s.history.length) return 0;
   
-  // Get unique weeks where the user trained
-  const getWeek = (isoStr) => {
+  const getWeekStr = (isoStr) => {
     const d = new Date(isoStr);
     d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() - (d.getDay() === 0 ? 6 : d.getDay() - 1)); // Set to Monday
-    return d.getTime();
+    d.setDate(d.getDate() - (d.getDay() === 0 ? 6 : d.getDay() - 1));
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   };
   
-  const weeks = [...new Set(s.history.map(sess => getWeek(sess.dateISO)))].sort((a, b) => b - a);
+  const weeks = [...new Set(s.history.map(sess => getWeekStr(sess.dateISO)))].sort((a, b) => b.localeCompare(a));
   
   let streak = 0;
-  const currentWeek = getWeek(new Date().toISOString());
+  const currentWeekStr = getWeekStr(new Date().toISOString());
   
-  // If the user hasn't trained this week or last week, streak is 0
-  if (weeks[0] < currentWeek - 7 * 24 * 60 * 60 * 1000) {
+  const getPrevWeekStr = (weekStr) => {
+    const [y, m, d] = weekStr.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    date.setDate(date.getDate() - 7);
+    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+  };
+  
+  const lastWeekStr = getPrevWeekStr(currentWeekStr);
+  
+  if (weeks[0] !== currentWeekStr && weeks[0] !== lastWeekStr) {
     return 0;
   }
   
@@ -111,7 +118,7 @@ function calcStreak(s) {
   for (let i = 0; i < weeks.length; i++) {
     if (weeks[i] === expectedWeek) {
       streak++;
-      expectedWeek -= 7 * 24 * 60 * 60 * 1000;
+      expectedWeek = getPrevWeekStr(expectedWeek);
     } else {
       break;
     }
@@ -197,6 +204,19 @@ const DB = loadState() || {
   theme: 'emerald',
   students: []
 };
+if (!DB.presets) DB.presets = [];
+
+// Auto-populate default presets if none exist
+if (DB.presets.length === 0 && !DB.presetsInitialized) {
+  DB.presets = [
+    { id: generateId(), name: 'Pecho y Espalda (Fuerza)', focus: 'Pecho + Espalda', exercises: clone(BASE_ROUTINE[0].exercises).map(e => ({...e, id: generateId()})) },
+    { id: generateId(), name: 'Brazos y Core', focus: 'Bíceps + Tríceps + Abs', exercises: clone(BASE_ROUTINE[1].exercises).map(e => ({...e, id: generateId()})) },
+    { id: generateId(), name: 'Piernas y Hombros', focus: 'Piernas + Hombros', exercises: clone(BASE_ROUTINE[3].exercises).map(e => ({...e, id: generateId()})) },
+    { id: generateId(), name: 'Pecho y Espalda (Vol)', focus: 'Pecho + Espalda', exercises: clone(BASE_ROUTINE[4].exercises).map(e => ({...e, id: generateId()})) }
+  ];
+  DB.presetsInitialized = true;
+  persist();
+}
 
 // Memory-only UX States
 const UI = {
@@ -222,7 +242,8 @@ const UI = {
   rtRef: null,
   
   // Edit Routine states
-  editDayIdx: null
+  editDayIdx: null,
+  editPresetId: null
 };
 
 function getStudent() {
@@ -292,7 +313,8 @@ function renderList() {
   document.getElementById('search-inp').value = UI.search;
 
   const list = document.getElementById('student-list');
-  const filtered = DB.students.filter(s => s.name.toLowerCase().includes(UI.search.toLowerCase()));
+  const filtered = DB.students.filter(s => s.name.toLowerCase().includes(UI.search.toLowerCase()))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   if (!filtered.length) {
     list.appendChild(div({style: {textAlign: 'center', padding: '48px 16px', color: 'var(--t3)'}},
@@ -401,6 +423,18 @@ function renderStudent() {
   fillTab(s);
 }
 
+function moveDay(idx, dir) {
+  const s = getStudent();
+  const target = idx + dir;
+  if (target >= 0 && target < s.routine.length) {
+    const temp = s.routine[idx];
+    s.routine[idx] = s.routine[target];
+    s.routine[target] = temp;
+    persist();
+    fillTab(s);
+  }
+}
+
 function fillTab(s) {
   const content = document.getElementById('tab-content');
   if (!content) return;
@@ -476,14 +510,22 @@ function buildTabPlan(s) {
     }
     row.appendChild(info);
 
+    if (idx > 0) {
+      const upBtn = btn({style: {background: 'none', border: 'none', color: 'var(--t3)', padding: '6px', cursor: 'pointer'}}, icon('fa-solid fa-arrow-up'));
+      upBtn.onclick = e => { e.stopPropagation(); moveDay(idx, -1); };
+      row.appendChild(upBtn);
+    }
+    if (idx < s.routine.length - 1) {
+      const dnBtn = btn({style: {background: 'none', border: 'none', color: 'var(--t3)', padding: '6px', cursor: 'pointer'}}, icon('fa-solid fa-arrow-down'));
+      dnBtn.onclick = e => { e.stopPropagation(); moveDay(idx, 1); };
+      row.appendChild(dnBtn);
+    }
+
     const editBtn = btn({
       'data-action': 'open-edit-day', 'data-idx': String(idx),
       style: {width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: 'var(--t3)', cursor: 'pointer', fontSize: '15px', zIndex: '2'}
     }, icon('fa-solid fa-gear'));
     
-    // Let the global listener handle it, don't stop propagation if we want to bubble to document.
-    // Actually, if we let it bubble, the card's start-workout might trigger if the closest check favors it.
-    // It's safer to just handle it directly here instead of bubbling.
     editBtn.onclick = e => { 
       e.stopPropagation(); 
       UI.editDayIdx = idx;
@@ -793,7 +835,12 @@ function buildDualChartSVG(data) {
 
 // ── TAB: WORKOUT HISTORY ──
 function buildCalendarWidget(s) {
-  const dates = new Set(s.history.map(sess => sess.date));
+  const getLocalYMD = (isoStr) => {
+    if (!isoStr) return '';
+    const d = new Date(isoStr);
+    return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  };
+  const dates = new Set(s.history.map(sess => getLocalYMD(sess.dateISO)));
   const wrap = div({className: 'card', style: {padding: '16px'}});
   wrap.appendChild(div({className: 'syne', style: {fontSize: '13px', fontWeight: '800', color: 'var(--t1)', marginBottom: '12px'}}, 'Actividad este mes'));
   
@@ -811,8 +858,8 @@ function buildCalendarWidget(s) {
   for (let i = 0; i < startOffset; i++) grid.appendChild(div());
 
   for (let i = 1; i <= daysInMonth; i++) {
-    const dateStr = new Date(d.getFullYear(), d.getMonth(), i).toLocaleDateString('es-AR', {day: 'numeric', month: 'short'}).replace('.', '');
-    const hasWorkout = Array.from(dates).some(x => x.replace('.', '') === dateStr);
+    const ymd = `${d.getFullYear()}-${d.getMonth() + 1}-${i}`;
+    const hasWorkout = dates.has(ymd);
     const isToday = i === d.getDate();
 
     const cell = div({
@@ -1134,6 +1181,138 @@ function buildModal(key) {
     overlay.appendChild(box);
   }
 
+  // Preset Manager Modal
+  else if (key === 'presetManager') {
+    const list = div({style: {display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', maxHeight: '50vh', overflowY: 'auto'}});
+    
+    if (!DB.presets || !DB.presets.length) {
+      list.appendChild(div({style: {color: 'var(--t3)', fontSize: '13px', textAlign: 'center', padding: '20px 0'}}, 'No hay presets guardados. Creá uno nuevo.'));
+    } else {
+      DB.presets.forEach(p => {
+        const row = div({style: {display: 'flex', alignItems: 'center', background: 'var(--s2)', padding: '12px', borderRadius: 'var(--r)', border: '1px solid var(--bd)'}},
+          div({style: {flex: '1', cursor: 'pointer'}, 'data-action': 'open-edit-preset', 'data-pid': p.id},
+            div({className: 'syne', style: {fontWeight: '700', fontSize: '15px', color: 'var(--t1)'}}, p.name),
+            div({style: {fontSize: '12px', color: 'var(--t3)', marginTop: '2px'}}, `${p.exercises.length} ejercicios · ${p.focus}`)
+          ),
+          btn({className: 'btn-i', 'data-action': 'delete-preset', 'data-pid': p.id, style: {padding: '8px', color: 'var(--red)'}}, icon('fa-solid fa-trash'))
+        );
+        list.appendChild(row);
+      });
+    }
+
+    const box = div({className: 'modal-box'},
+      div({className: 'syne', style: {fontSize: '22px', fontWeight: '800', marginBottom: '8px'}}, 'Gestor de Presets'),
+      div({style: {color: 'var(--t2)', fontSize: '13px', marginBottom: '20px'}}, 'Creá plantillas de rutinas para aplicarlas rápidamente a tus alumnos.'),
+      list,
+      div({style: {display: 'flex', gap: '10px'}},
+        btn({className: 'btn-g', style: {flex: '1'}, 'data-action': 'close-modal'}, 'Cerrar'),
+        btn({className: 'btn-p', style: {flex: '1'}, 'data-action': 'open-create-preset'}, icon('fa-solid fa-plus'), ' Nuevo Preset')
+      )
+    );
+    overlay.appendChild(box);
+  }
+
+  // Edit Preset Modal
+  else if (key === 'editPreset') {
+    const p = DB.presets.find(x => x.id === UI.editPresetId);
+    if (!p) return null;
+    
+    const exList = div({style: {display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', maxHeight: '40vh', overflowY: 'auto'}});
+    
+    if (!p.exercises.length) {
+      exList.appendChild(div({style: {color: 'var(--t3)', fontSize: '13px', textAlign: 'center', padding: '20px 0'}}, 'Aún no hay ejercicios en este preset.'));
+    } else {
+      p.exercises.forEach((ex, i) => {
+        const exRow = div({style: {display: 'flex', alignItems: 'center', background: 'var(--s2)', padding: '10px 12px', borderRadius: 'var(--r)', border: '1px solid var(--bd)'}},
+          div({style: {flex: '1'}},
+            div({className: 'syne', style: {fontWeight: '700', fontSize: '14px', color: 'var(--t1)'}}, ex.name),
+            div({style: {fontSize: '11px', color: 'var(--t3)', marginTop: '2px'}}, `${ex.sets}x${ex.reps} @ ${ex.weight}kg`)
+          ),
+          div({style: {display: 'flex', gap: '4px'}},
+            btn({className: 'btn-i', 'data-action': 'move-preset-ex-up', 'data-idx': String(i), disabled: i === 0, style: {padding: '6px', opacity: i === 0 ? '0.3' : '1'}}, icon('fa-solid fa-arrow-up')),
+            btn({className: 'btn-i', 'data-action': 'move-preset-ex-down', 'data-idx': String(i), disabled: i === p.exercises.length - 1, style: {padding: '6px', opacity: i === p.exercises.length - 1 ? '0.3' : '1'}}, icon('fa-solid fa-arrow-down')),
+            btn({className: 'btn-i', 'data-action': 'remove-preset-ex', 'data-idx': String(i), style: {padding: '6px', color: 'var(--red)'}}, icon('fa-solid fa-trash'))
+          )
+        );
+        exList.appendChild(exRow);
+      });
+    }
+
+    const box = div({className: 'modal-box'},
+      div({className: 'syne', style: {fontSize: '20px', fontWeight: '800', marginBottom: '16px'}}, 'Editar Preset'),
+      
+      div({style: {display: 'flex', gap: '10px', marginBottom: '16px'}},
+        div({style: {flex: '1'}},
+          div({style: {fontSize: '11px', fontWeight: '700', color: 'var(--t3)', textTransform: 'uppercase', marginBottom: '6px'}}, 'Nombre del Preset'),
+          el('input', {className: 'inp', value: p.name, 'data-action': 'edit-preset-name', placeholder: 'Ej: Push Day', style: {width: '100%'}})
+        ),
+        div({style: {flex: '1'}},
+          div({style: {fontSize: '11px', fontWeight: '700', color: 'var(--t3)', textTransform: 'uppercase', marginBottom: '6px'}}, 'Enfoque'),
+          el('input', {className: 'inp', value: p.focus, 'data-action': 'edit-preset-focus', placeholder: 'Pecho/Tríceps', style: {width: '100%'}})
+        )
+      ),
+      
+      div({style: {display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px'}},
+        div({className: 'syne', style: {fontSize: '14px', fontWeight: '800'}}, 'Ejercicios'),
+        btn({className: 'btn-p', style: {padding: '6px 12px', fontSize: '12px'}, 'data-action': 'open-add-preset-ex'}, icon('fa-solid fa-plus'), ' Agregar')
+      ),
+      exList,
+      
+      btn({className: 'btn-g', 'data-action': 'open-presets', style: {width: '100%'}}, 'Volver')
+    );
+    overlay.appendChild(box);
+  }
+
+  // Add Exercise to Preset Modal
+  else if (key === 'addExerciseToPreset') {
+    const box = div({className: 'modal-box'},
+      div({className: 'syne', style: {fontSize: '20px', fontWeight: '800', marginBottom: '16px'}}, 'Nuevo Ejercicio (Preset)'),
+      el('input', {id: 'new-pex-name', className: 'inp', placeholder: 'Nombre (ej: Press Militar)', style: {marginBottom: '12px', width: '100%'}}),
+      div({style: {display: 'flex', gap: '8px', marginBottom: '20px'}},
+        el('input', {id: 'new-pex-sets', className: 'inp', type: 'number', placeholder: 'Series', style: {flex: '1'}}),
+        el('input', {id: 'new-pex-reps', className: 'inp', type: 'number', placeholder: 'Reps', style: {flex: '1'}}),
+        el('input', {id: 'new-pex-weight', className: 'inp', type: 'number', placeholder: 'Peso', style: {flex: '1'}})
+      ),
+      div({style: {display: 'flex', gap: '10px'}},
+        btn({className: 'btn-g', style: {flex: '1'}, 'data-action': 'close-add-preset-ex'}, 'Cancelar'),
+        btn({className: 'btn-p', style: {flex: '1'}, 'data-action': 'confirm-add-preset-ex'}, 'Guardar')
+      )
+    );
+    overlay.appendChild(box);
+    setTimeout(() => document.getElementById('new-pex-name')?.focus(), 80);
+  }
+
+  // Select Preset Modal
+  else if (key === 'selectPreset') {
+    const list = div({style: {display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', maxHeight: '50vh', overflowY: 'auto'}});
+    
+    if (!DB.presets || !DB.presets.length) {
+      list.appendChild(div({style: {color: 'var(--t3)', fontSize: '13px', textAlign: 'center', padding: '20px 0'}}, 'No hay presets guardados para cargar.'));
+    } else {
+      DB.presets.forEach(p => {
+        const row = div({
+          'data-action': 'apply-preset', 'data-pid': p.id,
+          className: 'card card-i', style: {display: 'flex', alignItems: 'center', padding: '14px', borderRadius: 'var(--r)'}
+        },
+          div({style: {flex: '1'}},
+            div({className: 'syne', style: {fontWeight: '700', fontSize: '15px', color: 'var(--t1)'}}, p.name),
+            div({style: {fontSize: '12px', color: 'var(--t3)', marginTop: '2px'}}, `${p.exercises.length} ejercicios · ${p.focus}`)
+          ),
+          div({style: {color: 'var(--t2)'}}, icon('fa-solid fa-chevron-right'))
+        );
+        list.appendChild(row);
+      });
+    }
+
+    const box = div({className: 'modal-box'},
+      div({className: 'syne', style: {fontSize: '22px', fontWeight: '800', marginBottom: '8px'}}, 'Cargar Preset'),
+      div({style: {color: 'var(--t2)', fontSize: '13px', marginBottom: '20px'}}, 'Selecciona un preset para aplicarlo a este día.'),
+      list,
+      btn({className: 'btn-g', 'data-action': 'close-modal'}, 'Cancelar')
+    );
+    overlay.appendChild(box);
+  }
+
   // Add Alumno Modal
   else if (key === 'addStudent') {
     const box = div({className: 'modal-box'},
@@ -1223,7 +1402,10 @@ function buildModal(key) {
     const box = div({className: 'modal-box'},
       div({style: {display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}},
         div({className: 'syne', style: {fontSize: '20px', fontWeight: '800'}}, `Editar Día`),
-        btn({className: 'btn-i', 'data-action': 'delete-day', style: {color: 'var(--red)', padding: '4px 8px'}}, icon('fa-solid fa-trash'), ' Borrar Día')
+        div({style: {display: 'flex', gap: '8px'}},
+          btn({className: 'btn-i', 'data-action': 'open-select-preset', style: {color: 'var(--blue)', padding: '4px 8px'}}, icon('fa-solid fa-download'), ' Preset'),
+          btn({className: 'btn-i', 'data-action': 'delete-day', style: {color: 'var(--red)', padding: '4px 8px'}}, icon('fa-solid fa-trash'), ' Borrar Día')
+        )
       ),
       
       div({style: {display: 'flex', gap: '10px', marginBottom: '16px'}},
@@ -1368,11 +1550,26 @@ function buildEmpty(ic, title, sub) {
 // ═══════════════════════════════════════════════════════════
 //  LAYER 7 — INDEPENDENT TIMER ENGINE
 // ═══════════════════════════════════════════════════════════
-function startWorkoutTimer() {
+function persistActiveSession() {
+  if (UI.view === 'workout' && UI.wDay) {
+    DB.activeSession = {
+      studentId: UI.studentId,
+      wDay: UI.wDay,
+      wData: UI.wData,
+      wStart: UI.wStart
+    };
+    persist();
+  }
+}
+
+function startWorkoutTimer(isRestore = false) {
   clearWorkoutTimer();
-  UI.wStart = Date.now() - UI.wElapsed * 1000;
+  if (!isRestore) {
+    UI.wStart = Date.now() - UI.wElapsed * 1000;
+    persistActiveSession();
+  }
   UI.wTimerRef = setInterval(() => {
-    UI.wElapsed = Math.floor((Date.now() - UI.wStart) / 1000);
+    UI.wElapsed = Math.max(0, Math.floor((Date.now() - UI.wStart) / 1000));
     const el = document.getElementById('workout-timer');
     if (el) el.textContent = fmt(UI.wElapsed);
   }, 1000);
@@ -1440,6 +1637,7 @@ document.addEventListener('click', e => {
   
   if (action === 'open-settings') { openModal('settings'); return; }
   if (action === 'open-manual') { openModal('manual'); return; }
+  if (action === 'open-presets') { openModal('presetManager'); return; }
   if (action === 'set-theme') {
     DB.theme = t.dataset.val;
     persist();
@@ -1479,6 +1677,82 @@ document.addEventListener('click', e => {
   if (action === 'open-delete-student') { openModal('deleteStudent'); return; }
   if (action === 'confirm-delete-student') { doDeleteStudent(); return; }
 
+  // Presets CRUD
+  if (action === 'open-create-preset') {
+    const p = { id: generateId(), name: 'Nuevo Preset', focus: 'General', exercises: [] };
+    DB.presets.unshift(p);
+    persist();
+    UI.editPresetId = p.id;
+    openModal('editPreset');
+    return;
+  }
+  if (action === 'open-edit-preset') {
+    UI.editPresetId = t.dataset.pid;
+    openModal('editPreset');
+    return;
+  }
+  if (action === 'delete-preset') {
+    if (confirm('¿Eliminar este preset?')) {
+      DB.presets = DB.presets.filter(x => x.id !== t.dataset.pid);
+      persist();
+      openModal('presetManager');
+    }
+    return;
+  }
+  if (action === 'open-add-preset-ex') {
+    openModal('addExerciseToPreset');
+    return;
+  }
+  if (action === 'close-add-preset-ex') {
+    openModal('editPreset');
+    return;
+  }
+  if (action === 'confirm-add-preset-ex') {
+    const name = document.getElementById('new-pex-name')?.value.trim();
+    const sets = parseInt(document.getElementById('new-pex-sets')?.value) || 4;
+    const reps = parseInt(document.getElementById('new-pex-reps')?.value) || 10;
+    const weight = parseFloat(document.getElementById('new-pex-weight')?.value) || 0;
+    
+    if (name) {
+      const p = DB.presets.find(x => x.id === UI.editPresetId);
+      if (p) {
+        p.exercises.push({ id: generateId(), name, sets, reps, weight });
+        persist();
+      }
+    }
+    openModal('editPreset');
+    return;
+  }
+  if (action === 'move-preset-ex-up') {
+    const p = DB.presets.find(x => x.id === UI.editPresetId);
+    const i = +t.dataset.idx;
+    if (p && i > 0) {
+      [p.exercises[i - 1], p.exercises[i]] = [p.exercises[i], p.exercises[i - 1]];
+      persist();
+      openModal('editPreset');
+    }
+    return;
+  }
+  if (action === 'move-preset-ex-down') {
+    const p = DB.presets.find(x => x.id === UI.editPresetId);
+    const i = +t.dataset.idx;
+    if (p && i < p.exercises.length - 1) {
+      [p.exercises[i + 1], p.exercises[i]] = [p.exercises[i], p.exercises[i + 1]];
+      persist();
+      openModal('editPreset');
+    }
+    return;
+  }
+  if (action === 'remove-preset-ex') {
+    const p = DB.presets.find(x => x.id === UI.editPresetId);
+    if (p) {
+      p.exercises.splice(+t.dataset.idx, 1);
+      persist();
+      openModal('editPreset');
+    }
+    return;
+  }
+
   // Active workout flow
   if (action === 'start-workout') {
     const idx = +t.dataset.dayIdx;
@@ -1511,6 +1785,8 @@ document.addEventListener('click', e => {
   if (action === 'confirm-cancel-workout') {
     clearWorkoutTimer();
     closeModalDOM();
+    delete DB.activeSession;
+    persist();
     UI.modal = null;
     UI.view = 'student';
     UI.tab = 'plan';
@@ -1521,6 +1797,28 @@ document.addEventListener('click', e => {
   if (action === 'finish-workout') { doFinishWorkout(); return; }
 
   // Editor de Rutinas Actions
+  if (action === 'open-select-preset') {
+    openModal('selectPreset');
+    return;
+  }
+  if (action === 'apply-preset') {
+    const preset = DB.presets.find(x => x.id === t.dataset.pid);
+    const s = getStudent();
+    if (preset && s && UI.editDayIdx !== null) {
+      s.routine[UI.editDayIdx].focus = preset.focus;
+      s.routine[UI.editDayIdx].isRest = false;
+      // Recreate exercises with new IDs
+      s.routine[UI.editDayIdx].exercises = preset.exercises.map(ex => ({
+        ...ex,
+        id: generateId()
+      }));
+      persist();
+      fillTab(s);
+      openModal('editDay');
+    }
+    return;
+  }
+  
   if (action === 'add-day') {
     const s = getStudent();
     s.routine.push({day: `Día ${s.routine.length + 1}`, focus: 'Nuevo Enfoque', isRest: false, exercises: []});
@@ -1613,12 +1911,14 @@ document.addEventListener('click', e => {
     const idx = +t.dataset.idx;
     UI.wData[idx].completed = !UI.wData[idx].completed;
     patchExCard(idx);
+    persistActiveSession();
     return;
   }
   if (action === 'toggle-ex-notes') {
     const idx = +t.dataset.idx;
     UI.wData[idx].showNotes = !UI.wData[idx].showNotes;
     patchExCard(idx);
+    persistActiveSession();
     return;
   }
 
@@ -1660,11 +1960,13 @@ document.addEventListener('input', e => {
   if (t.dataset.action === 'inp-w') {
     UI.wData[+t.dataset.idx].actualWeight = parseFloat(t.value) || 0;
     updateWorkoutProgress();
+    persistActiveSession();
     return;
   }
   if (t.dataset.action === 'inp-r') {
     UI.wData[+t.dataset.idx].actualReps = parseInt(t.value) || 0;
     updateWorkoutProgress();
+    persistActiveSession();
     return;
   }
   if (t.dataset.action === 'calc-rm') {
@@ -1717,6 +2019,20 @@ document.addEventListener('change', e => {
     persist();
     fillTab(s);
   }
+  if (e.target.dataset.action === 'edit-preset-name') {
+    const p = DB.presets.find(x => x.id === UI.editPresetId);
+    if (p) {
+      p.name = e.target.value;
+      persist();
+    }
+  }
+  if (e.target.dataset.action === 'edit-preset-focus') {
+    const p = DB.presets.find(x => x.id === UI.editPresetId);
+    if (p) {
+      p.focus = e.target.value;
+      persist();
+    }
+  }
 });
 
 // Modal submit key binding
@@ -1763,6 +2079,9 @@ function doAddStudent() {
 }
 
 function doDeleteStudent() {
+  if (DB.activeSession && String(DB.activeSession.studentId) === String(UI.studentId)) {
+    delete DB.activeSession;
+  }
   DB.students = DB.students.filter(s => String(s.id) !== String(UI.studentId));
   persist();
   
@@ -1799,15 +2118,18 @@ function doFinishWorkout() {
 
   // Progressive Overload Automation
   const dayIdx = s.routine.findIndex(d => d.day === UI.wDay.day);
-  UI.wData.forEach(wEx => {
-    if (!wEx.completed) return;
-    const rEx = s.routine[dayIdx].exercises.find(e => e.id === wEx.id);
-    if (rEx) {
-      rEx.weight = parseFloat(wEx.actualWeight) || rEx.weight;
-      rEx.reps = parseInt(wEx.actualReps) || rEx.reps;
-    }
-  });
+  if (dayIdx !== -1) {
+    UI.wData.forEach(wEx => {
+      if (!wEx.completed) return;
+      const rEx = s.routine[dayIdx].exercises.find(e => e.id === wEx.id);
+      if (rEx) {
+        rEx.weight = parseFloat(wEx.actualWeight) || rEx.weight;
+        rEx.reps = parseInt(wEx.actualReps) || rEx.reps;
+      }
+    });
+  }
 
+  delete DB.activeSession;
   persist();
   clearWorkoutTimer();
 
@@ -1856,11 +2178,13 @@ function adjWeight(idx, delta) {
   const val = Math.max(0, parseFloat(UI.wData[idx].actualWeight || 0) + delta);
   UI.wData[idx].actualWeight = parseFloat(val.toFixed(1));
   patchExCard(idx);
+  persistActiveSession();
 }
 
 function adjReps(idx, delta) {
   UI.wData[idx].actualReps = Math.max(0, parseInt(UI.wData[idx].actualReps || 0) + delta);
   patchExCard(idx);
+  persistActiveSession();
 }
 
 function doExport() {
@@ -1917,7 +2241,19 @@ function checkBackupPrompt() {
 
 const root = document.getElementById('root');
 document.documentElement.setAttribute('data-theme', DB.theme || 'emerald');
-renderList();
+
+if (DB.activeSession && DB.activeSession.wDay) {
+  UI.view = 'workout';
+  UI.studentId = DB.activeSession.studentId;
+  UI.wDay = DB.activeSession.wDay;
+  UI.wData = DB.activeSession.wData;
+  UI.wStart = DB.activeSession.wStart;
+  UI.wElapsed = Math.max(0, Math.floor((Date.now() - UI.wStart) / 1000));
+  renderWorkout();
+  startWorkoutTimer(true);
+} else {
+  renderList();
+}
 checkBackupPrompt();
 
 })();
