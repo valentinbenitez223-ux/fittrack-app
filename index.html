@@ -36,7 +36,7 @@
             <h1 class="syne" style="margin: 0; font-size: 28px; font-weight: 800;">Mis Alumnos</h1>
           </div>
           <div style="display: flex; gap: 10px;">
-            <button id="sync-status-btn" onclick="window.SyncEngine && window.SyncEngine.handleManualSync()" style="width: 44px; height: 44px; border-radius: 50%; background: var(--s2); border: 1px solid var(--bd); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--t2); font-size: 18px; transition: all 0.2s;" aria-label="Estado de Sincronización">
+            <button id="sync-status-btn" data-action="manual-sync" style="width: 44px; height: 44px; border-radius: 50%; background: var(--s2); border: 1px solid var(--bd); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--t2); font-size: 18px; transition: all 0.2s;" aria-label="Estado de Sincronización">
               <i id="sync-status-icon" class="fa-solid fa-cloud"></i>
             </button>
             <button data-action="open-manual" style="width: 44px; height: 44px; border-radius: 50%; background: var(--s2); border: 1px solid var(--bd); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--t2); font-size: 18px; transition: all 0.2s;" aria-label="Manual de Uso">

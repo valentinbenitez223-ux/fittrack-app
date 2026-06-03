@@ -1688,6 +1688,12 @@ document.addEventListener('click', e => {
   if (!t) return;
   const action = t.dataset.action;
 
+  if (action === 'manual-sync') {
+    if (window.SyncEngine) window.SyncEngine.handleManualSync();
+    else alert('El módulo de sincronización no está cargado correctamente.');
+    return;
+  }
+
   // Navigation Click Controls
   if (action === 'go-list') {
     UI.view = 'list';
