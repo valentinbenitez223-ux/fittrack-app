@@ -17,7 +17,7 @@ function getSupabase() {
   }
 }
 
-const supabase = getSupabase();
+const supabaseClient = getSupabase();
 
 window.SyncEngine = {
   user: null,
@@ -27,7 +27,7 @@ window.SyncEngine = {
 
   handleManualSync() {
     alert('Buscando conexión con la nube...');
-    if (!supabase) {
+    if (!supabaseClient) {
       alert('Error: No se pudo conectar con Supabase. Verifica tu conexión o que la clave y URL sean correctas.');
       return;
     }
@@ -37,14 +37,14 @@ window.SyncEngine = {
 
   init() {
 
-    if (!supabase) {
+    if (!supabaseClient) {
       console.error('Supabase no está cargado');
       this.updateUI('error');
       return;
     }
 
     // Comprobar sesión activa
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         this.user = session.user;
         this.fetchWorkspace();
@@ -55,7 +55,7 @@ window.SyncEngine = {
     });
 
     // Escuchar cambios de auth
-    supabase.auth.onAuthStateChange((_event, session) => {
+    supabaseClient.auth.onAuthStateChange((_event, session) => {
       this.user = session?.user || null;
       if (this.user) {
         this.fetchWorkspace();
@@ -73,7 +73,7 @@ window.SyncEngine = {
 
   async fetchWorkspace() {
     this.updateUI('syncing');
-    const { data, error } = await supabase.from('users').select('workspace_id').eq('id', this.user.id).single();
+    const { data, error } = await supabaseClient.from('users').select('workspace_id').eq('id', this.user.id).single();
     if (data && data.workspace_id) {
       this.workspaceId = data.workspace_id;
       this.updateUI('synced');
@@ -129,7 +129,7 @@ window.SyncEngine = {
     for (let s of window.DB.students) {
       // 1. Student metadata
       if (s.syncStatus === 'pending') {
-        const { error } = await supabase.from('students').upsert({
+        const { error } = await supabaseClient.from('students').upsert({
           id: s.id,
           workspace_id: this.workspaceId,
           name: s.name,
@@ -142,7 +142,7 @@ window.SyncEngine = {
 
       // 2. Routine
       if (s.routineSyncStatus === 'pending') {
-        const { error } = await supabase.from('routines').upsert({
+        const { error } = await supabaseClient.from('routines').upsert({
           student_id: s.id,
           content: s.routine,
           created_by: this.user.id
@@ -152,7 +152,7 @@ window.SyncEngine = {
 
       // 3. Notes (Upsert)
       if (s.notesSyncStatus === 'pending') {
-        const { error } = await supabase.from('notes').upsert({
+        const { error } = await supabaseClient.from('notes').upsert({
           student_id: s.id,
           content: s.notes || '',
           created_by: this.user.id
@@ -163,7 +163,7 @@ window.SyncEngine = {
       // 4. Measurements (Append only)
       for (let m of s.measurements) {
         if (m.syncStatus === 'pending') {
-          const { error } = await supabase.from('measurements').insert({
+          const { error } = await supabaseClient.from('measurements').insert({
             id: m.id,
             student_id: s.id,
             weight: m.weight,
@@ -180,7 +180,7 @@ window.SyncEngine = {
       // 5. Sessions (Append only)
       for (let sess of s.history) {
         if (sess.syncStatus === 'pending') {
-          const { error } = await supabase.from('sessions').insert({
+          const { error } = await supabaseClient.from('sessions').insert({
             id: sess.id,
             student_id: s.id,
             exercises: sess.exercises,
@@ -212,7 +212,7 @@ window.SyncEngine = {
     };
 
     // Pull Students (Last write wins)
-    const { data: students } = await supabase.from('students').select('*').gt('updated_at', lastSync);
+    const { data: students } = await supabaseClient.from('students').select('*').gt('updated_at', lastSync);
     if (students && students.length) {
       students.forEach(rem => {
         updateMaxTime(rem.updated_at);
@@ -230,7 +230,7 @@ window.SyncEngine = {
     }
 
     // Pull Routines (Last write wins)
-    const { data: routines } = await supabase.from('routines').select('*').gt('updated_at', lastSync);
+    const { data: routines } = await supabaseClient.from('routines').select('*').gt('updated_at', lastSync);
     if (routines && routines.length) {
       routines.forEach(rem => {
         updateMaxTime(rem.updated_at);
@@ -244,7 +244,7 @@ window.SyncEngine = {
     }
 
     // Pull Notes (Last Write Wins)
-    const { data: notes } = await supabase.from('notes').select('*').gt('updated_at', lastSync);
+    const { data: notes } = await supabaseClient.from('notes').select('*').gt('updated_at', lastSync);
     if (notes && notes.length) {
       notes.forEach(rem => {
         updateMaxTime(rem.updated_at);
@@ -258,7 +258,7 @@ window.SyncEngine = {
     }
 
     // Pull Measurements (Append only)
-    const { data: measurements } = await supabase.from('measurements').select('*').gt('created_at', lastSync);
+    const { data: measurements } = await supabaseClient.from('measurements').select('*').gt('created_at', lastSync);
     if (measurements && measurements.length) {
       measurements.forEach(rem => {
         updateMaxTime(rem.created_at);
@@ -273,7 +273,7 @@ window.SyncEngine = {
     }
 
     // Pull Sessions (Append only)
-    const { data: sessions } = await supabase.from('sessions').select('*').gt('created_at', lastSync);
+    const { data: sessions } = await supabaseClient.from('sessions').select('*').gt('created_at', lastSync);
     if (sessions && sessions.length) {
       sessions.forEach(rem => {
         updateMaxTime(rem.created_at);
@@ -331,7 +331,7 @@ window.SyncEngine = {
       const pass = document.getElementById('sync-pass').value;
       if (!email || !pass) return;
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
       if (error) {
         alert('Error: ' + error.message);
       } else {
