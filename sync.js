@@ -5,9 +5,19 @@
 // === CONFIGURACIÓN DE SUPABASE ===
 // IMPORTANTE: Reemplaza estas constantes con las de tu proyecto en Supabase.
 const SUPABASE_URL = 'https://gwpkeeboywqsydjqumzk.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_kDyr5j7QIiGaZBtL2zPuRw_IO3EAHxN';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3cGtlZWJveXdxc3lkanF1bXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0OTE4NDksImV4cCI6MjA5NjA2Nzg0OX0.Ysat6PVUMQEfd0Q6LnIniX98tF7blD2fTjtlVN8Nuu0';
 
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+function getSupabase() {
+  if (!window.supabase) return null;
+  try {
+    return window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  } catch (e) {
+    console.error('Error inicializando cliente Supabase:', e);
+    return null;
+  }
+}
+
+const supabase = getSupabase();
 
 window.SyncEngine = {
   user: null,
@@ -16,6 +26,19 @@ window.SyncEngine = {
   lastSyncAt: localStorage.getItem('fitTrackLastSync') || null,
 
   init() {
+    // Delegar click en el botón de sync manual (siempre activo para reportar errores)
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action="manual-sync"]');
+      if (btn) {
+        if (!supabase) {
+          alert('Error: No se pudo conectar con Supabase. Verifica tu conexión o que la clave y URL sean correctas.');
+          return;
+        }
+        if (!this.user) this.showLoginModal();
+        else this.syncAll();
+      }
+    });
+
     if (!supabase) {
       console.error('Supabase no está cargado');
       this.updateUI('error');
@@ -41,15 +64,7 @@ window.SyncEngine = {
       }
     });
 
-    // Delegar click en el botón de sync manual
-    document.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-action="manual-sync"]');
-      if (btn) {
-        if (!this.user) this.showLoginModal();
-        else this.syncAll();
-      }
-    });
-    
+
     // Auto-sync interval (cada 3 minutos)
     setInterval(() => {
       if (this.user && this.workspaceId && navigator.onLine) {
