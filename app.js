@@ -1711,6 +1711,22 @@ document.addEventListener('click', e => {
     if (window.SyncEngine) window.SyncEngine.logout();
     return;
   }
+  if (action === 'run-diagnostics') {
+    if (!window.SyncEngine || !window.SyncEngine.user) {
+      alert("No estás conectado a la nube.");
+      return;
+    }
+    alert("Iniciando diagnóstico... Por favor espera.");
+    const u = window.SyncEngine.user.id;
+    window.supabaseClient.from('students').select('*').then(({data, error}) => {
+      if (error) {
+        alert("DIAGNÓSTICO (Error): " + error.message);
+      } else {
+        alert("DIAGNÓSTICO (Éxito):\nUsuario ID: " + u.substr(0,8) + "...\nAlumnos en Nube: " + (data ? data.length : 0) + "\nAlumnos en Celular: " + DB.students.length);
+      }
+    });
+    return;
+  }
 
   // Navigation Click Controls
   if (action === 'go-list') {
