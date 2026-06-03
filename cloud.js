@@ -10,7 +10,9 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 function getSupabase() {
   if (!window.supabase) return null;
   try {
-    return window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    window.supabaseClient = supabaseClient;
+    return supabaseClient;
   } catch (e) {
     console.error('Error inicializando cliente Supabase:', e);
     return null;
