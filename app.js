@@ -156,7 +156,7 @@ function loadState() {
   try {
     const d = localStorage.getItem(KEY);
     if (!d) return null;
-    const p = JSON.parse(d);
+    let p = JSON.parse(d);
     
     // Apply migrations
     if (p.students) {
@@ -210,7 +210,8 @@ function loadState() {
     }
     
     return p;
-  } catch {
+  } catch (err) {
+    console.error("Error crítico cargando localStorage:", err);
     return null;
   }
 }
@@ -228,13 +229,13 @@ function migrateV9ToV10(p) {
 
     if (s.history) {
       s.history.forEach(h => {
-        if (!h.id) h.id = crypto.randomUUID();
+        if (!h.id) h.id = generateId();
         h.syncStatus = h.syncStatus || 'pending';
       });
     }
     if (s.measurements) {
       s.measurements.forEach(m => {
-        if (!m.id) m.id = crypto.randomUUID();
+        if (!m.id) m.id = generateId();
         m.syncStatus = m.syncStatus || 'pending';
       });
     }
