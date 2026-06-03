@@ -1690,7 +1690,7 @@ document.addEventListener('click', e => {
 
   if (action === 'manual-sync') {
     if (window.SyncEngine) window.SyncEngine.handleManualSync();
-    else alert('El módulo de sincronización no está cargado correctamente.');
+    else alert('Error: Tu navegador bloqueó la conexión (AdBlocker) o estás viendo una versión vieja (Caché). Prueba abrir la página en Modo Incógnito o borrar la caché del navegador.');
     return;
   }
 
