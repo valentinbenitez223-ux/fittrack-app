@@ -131,7 +131,22 @@ function allExerciseNames(s) {
 }
 
 function freshStudent(name) {
-  return {id: generateId(), name, notes: '', exerciseNotes: {}, routine: clone(BASE_ROUTINE), history: [], measurements: []};
+  return {
+    id: generateId(), 
+    name, 
+    isDeleted: false,
+    syncStatus: 'pending',
+    updatedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    routineSyncStatus: 'pending',
+    routineUpdatedAt: new Date().toISOString(),
+    notesSyncStatus: 'pending',
+    notes: '', 
+    exerciseNotes: {}, 
+    routine: clone(BASE_ROUTINE), 
+    history: [], 
+    measurements: []
+  };
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -188,16 +203,62 @@ function loadState() {
       });
     }
     if (!p.theme) p.theme = 'emerald';
+    
+    if (!p.version || p.version < 10) {
+      p = migrateV9ToV10(p);
+      localStorage.setItem(KEY, JSON.stringify(p));
+    }
+    
     return p;
   } catch {
     return null;
   }
 }
 
+function migrateV9ToV10(p) {
+  if (!p.students) return p;
+  p.students = p.students.map(s => {
+    s.syncStatus = s.syncStatus || 'pending';
+    s.createdAt = s.createdAt || new Date().toISOString();
+    s.updatedAt = s.updatedAt || new Date().toISOString();
+    s.routineSyncStatus = s.routineSyncStatus || 'pending';
+    s.routineUpdatedAt = s.routineUpdatedAt || new Date().toISOString();
+    s.notesSyncStatus = s.notesSyncStatus || 'pending';
+    s.isDeleted = s.isDeleted || false;
+
+    if (s.history) {
+      s.history.forEach(h => {
+        if (!h.id) h.id = generateId();
+        h.syncStatus = h.syncStatus || 'pending';
+      });
+    }
+    if (s.measurements) {
+      s.measurements.forEach(m => {
+        if (!m.id) m.id = generateId();
+        m.syncStatus = m.syncStatus || 'pending';
+      });
+    }
+    return s;
+  });
+  p.version = 10;
+  return p;
+}
+
 function persist() {
   try {
     localStorage.setItem(KEY, JSON.stringify(DB));
+    if (window.SyncEngine) window.SyncEngine.triggerPush();
   } catch {}
+}
+
+function markRoutineUpdated(s) {
+  s.routineUpdatedAt = new Date().toISOString();
+  s.routineSyncStatus = 'pending';
+}
+
+function markStudentUpdated(s) {
+  s.updatedAt = new Date().toISOString();
+  s.syncStatus = 'pending';
 }
 
 const DB = loadState() || {
@@ -313,7 +374,7 @@ function renderList() {
   document.getElementById('search-inp').value = UI.search;
 
   const list = document.getElementById('student-list');
-  const filtered = DB.students.filter(s => s.name.toLowerCase().includes(UI.search.toLowerCase()))
+  const filtered = DB.students.filter(s => !s.isDeleted && s.name.toLowerCase().includes(UI.search.toLowerCase()))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   if (!filtered.length) {
@@ -1807,11 +1868,11 @@ document.addEventListener('click', e => {
     if (preset && s && UI.editDayIdx !== null) {
       s.routine[UI.editDayIdx].focus = preset.focus;
       s.routine[UI.editDayIdx].isRest = false;
-      // Recreate exercises with new IDs
       s.routine[UI.editDayIdx].exercises = preset.exercises.map(ex => ({
         ...ex,
         id: generateId()
       }));
+      markRoutineUpdated(s);
       persist();
       fillTab(s);
       openModal('editDay');
@@ -1822,6 +1883,7 @@ document.addEventListener('click', e => {
   if (action === 'add-day') {
     const s = getStudent();
     s.routine.push({day: `Día ${s.routine.length + 1}`, focus: 'Nuevo Enfoque', isRest: false, exercises: []});
+    markRoutineUpdated(s);
     persist();
     fillTab(s);
     return;
@@ -1829,6 +1891,7 @@ document.addEventListener('click', e => {
   if (action === 'delete-day') {
     const s = getStudent();
     s.routine.splice(UI.editDayIdx, 1);
+    markRoutineUpdated(s);
     persist();
     closeModalDOM();
     fillTab(s);
@@ -1842,6 +1905,7 @@ document.addEventListener('click', e => {
   if (action === 'toggle-day-rest') {
     const s = getStudent();
     s.routine[UI.editDayIdx].isRest = t.checked;
+    markRoutineUpdated(s);
     persist();
     openModal('editDay');
     fillTab(s); // Update background
@@ -1853,6 +1917,7 @@ document.addEventListener('click', e => {
     const i = +t.dataset.idx;
     if (i > 0) {
       [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]];
+      markRoutineUpdated(s);
       persist();
       openModal('editDay');
       fillTab(s);
@@ -1865,6 +1930,7 @@ document.addEventListener('click', e => {
     const i = +t.dataset.idx;
     if (i < arr.length - 1) {
       [arr[i + 1], arr[i]] = [arr[i], arr[i + 1]];
+      markRoutineUpdated(s);
       persist();
       openModal('editDay');
       fillTab(s);
@@ -1874,6 +1940,7 @@ document.addEventListener('click', e => {
   if (action === 'remove-ex') {
     const s = getStudent();
     s.routine[UI.editDayIdx].exercises.splice(+t.dataset.idx, 1);
+    markRoutineUpdated(s);
     persist();
     openModal('editDay');
     fillTab(s);
@@ -1899,6 +1966,7 @@ document.addEventListener('click', e => {
         id: generateId(),
         name, sets, reps, weight
       });
+      markRoutineUpdated(s);
       persist();
       fillTab(s);
     }
@@ -2010,12 +2078,14 @@ document.addEventListener('change', e => {
   if (e.target.dataset.action === 'edit-day-focus') {
     const s = getStudent();
     s.routine[UI.editDayIdx].focus = e.target.value;
+    markRoutineUpdated(s);
     persist();
     fillTab(s);
   }
   if (e.target.dataset.action === 'edit-day-name') {
     const s = getStudent();
     s.routine[UI.editDayIdx].day = e.target.value;
+    markRoutineUpdated(s);
     persist();
     fillTab(s);
   }
@@ -2082,7 +2152,11 @@ function doDeleteStudent() {
   if (DB.activeSession && String(DB.activeSession.studentId) === String(UI.studentId)) {
     delete DB.activeSession;
   }
-  DB.students = DB.students.filter(s => String(s.id) !== String(UI.studentId));
+  const s = DB.students.find(x => String(x.id) === String(UI.studentId));
+  if (s) {
+    s.isDeleted = true;
+    markStudentUpdated(s);
+  }
   persist();
   
   closeModalDOM();
@@ -2110,7 +2184,8 @@ function doFinishWorkout() {
       reps: ex.reps,
       actualWeight: ex.actualWeight,
       actualReps: ex.actualReps
-    }))
+    })),
+    syncStatus: 'pending'
   };
 
   const s = getStudent();
@@ -2127,6 +2202,7 @@ function doFinishWorkout() {
         rEx.reps = parseInt(wEx.actualReps) || rEx.reps;
       }
     });
+    markRoutineUpdated(s);
   }
 
   delete DB.activeSession;
@@ -2148,7 +2224,7 @@ function doAddMeasurement() {
   if (!w || !h) return;
 
   const s = getStudent();
-  s.measurements.push({id: generateId(), date: todayStr(), weight: w, height: h, fat: f, muscle: mu});
+  s.measurements.push({id: generateId(), date: todayStr(), weight: w, height: h, fat: f, muscle: mu, syncStatus: 'pending'});
   persist();
 
   closeModalDOM();
@@ -2162,6 +2238,7 @@ function doSaveNotes() {
   
   const s = getStudent();
   s.notes = ta.value;
+  s.notesSyncStatus = 'pending';
   persist();
 
   UI.noteSaved = true;
