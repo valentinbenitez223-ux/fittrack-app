@@ -26,7 +26,6 @@ window.SyncEngine = {
   lastSyncAt: localStorage.getItem('fitTrackLastSync') || null,
 
   handleManualSync() {
-    alert('Buscando conexión con la nube...');
     if (!supabaseClient) {
       alert('Error: No se pudo conectar con Supabase. Verifica tu conexión o que la clave y URL sean correctas.');
       return;
@@ -92,13 +91,13 @@ window.SyncEngine = {
     icon.style.color = 'var(--t3)';
 
     if (state === 'synced') {
-      icon.className = 'fa-solid fa-cloud-check';
+      icon.className = 'fa-solid fa-cloud';
       icon.style.color = 'var(--em)';
     } else if (state === 'syncing') {
       icon.className = 'fa-solid fa-rotate fa-spin';
       icon.style.color = 'var(--blue)';
     } else if (state === 'error') {
-      icon.className = 'fa-solid fa-cloud-xmark';
+      icon.className = 'fa-solid fa-triangle-exclamation';
       icon.style.color = 'var(--red)';
     } else if (state === 'offline') {
       icon.style.color = 'var(--t3)';
