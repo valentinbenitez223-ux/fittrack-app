@@ -228,13 +228,13 @@ function migrateV9ToV10(p) {
 
     if (s.history) {
       s.history.forEach(h => {
-        if (!h.id) h.id = generateId();
+        if (!h.id) h.id = crypto.randomUUID();
         h.syncStatus = h.syncStatus || 'pending';
       });
     }
     if (s.measurements) {
       s.measurements.forEach(m => {
-        if (!m.id) m.id = generateId();
+        if (!m.id) m.id = crypto.randomUUID();
         m.syncStatus = m.syncStatus || 'pending';
       });
     }
