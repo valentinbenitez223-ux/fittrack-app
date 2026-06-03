@@ -26,6 +26,7 @@ window.SyncEngine = {
   lastSyncAt: localStorage.getItem('fitTrackLastSync') || null,
 
   handleManualSync() {
+    alert('Buscando conexión con la nube...');
     if (!supabase) {
       alert('Error: No se pudo conectar con Supabase. Verifica tu conexión o que la clave y URL sean correctas.');
       return;
